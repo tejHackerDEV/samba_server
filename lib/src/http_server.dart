@@ -7,6 +7,28 @@ class HttpServer {
   /// Indicates whether the server is running or not
   bool get isRunning => _ioHttpServer != null;
 
+  /// Returns the uri of the server
+  Uri get uri {
+    _assertServerRunning();
+    final hostBuffer = StringBuffer();
+    if (_ioHttpServer!.address.type == io.InternetAddressType.IPv6) {
+      // IPv6 addresses in URLs need to be enclosed in square brackets to avoid
+      // URL ambiguity with the ":" in the address.
+      hostBuffer
+        ..write('[')
+        ..write(_ioHttpServer!.address.address)
+        ..write(']');
+    } else {
+      hostBuffer.write(_ioHttpServer!.address.address);
+    }
+
+    return Uri(
+      scheme: 'http',
+      host: hostBuffer.toString(),
+      port: _ioHttpServer!.port,
+    );
+  }
+
   /// Asserts whether the [_ioHttpServer] is not null
   void _assertServerRunning() {
     assert(isRunning, 'Server is not running to perform the action');

@@ -9,8 +9,17 @@ void main() {
   group('Server start & stop tests', () {
     final httpServer = HttpServer();
 
+    setUpAll(() => httpServer.bind(address: address, port: port));
+
     test('Server should be up & running', () async {
-      await httpServer.bind(address: address, port: port);
+      expect(httpServer.isRunning, isTrue);
+    });
+
+    test('Should return valid base uri of server', () async {
+      expect(httpServer.uri, Uri.parse('http://$address:$port'));
+    });
+
+    test('Server should be up & running', () async {
       expect(httpServer.isRunning, isTrue);
     });
 
@@ -26,7 +35,7 @@ void main() {
     setUpAll(() => httpServer.bind(address: address, port: port));
 
     test('Server should listen to incoming requests', () async {
-      final response = await http.get(Uri.parse('http://$address:$port'));
+      final response = await http.get(httpServer.uri);
       expect(response.statusCode, 200);
       expect(response.body, 'Hello from SAMBA_SERVER');
     });
