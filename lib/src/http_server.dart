@@ -12,6 +12,16 @@ class HttpServer {
     assert(isRunning, 'Server is not running to perform the action');
   }
 
+  /// Starts listening for incoming requests
+  void _listerForIncomingRequests() {
+    _assertServerRunning();
+    _ioHttpServer!.listen((ioHttpRequest) async {
+      ioHttpRequest.response.write('Hello from SAMBA_SERVER');
+      // need to close response to send it back to the client
+      return ioHttpRequest.response.close();
+    });
+  }
+
   /// Internally calls [io.HttpServer.bind] & all the arguments passed
   /// to this function are the one exposed by [io.HttpServer.bind] function.
   Future<void> bind({
@@ -33,6 +43,7 @@ class HttpServer {
       v6Only: v6Only,
       shared: shared,
     );
+    _listerForIncomingRequests();
   }
 
   /// Permanently stops this [HttpServer] from listening for new
