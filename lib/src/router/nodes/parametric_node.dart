@@ -4,6 +4,7 @@ class ParametricNode extends Node {
   ParametricNode(
     super.section, {
     super.route,
-    super.childNodes,
+    super.staticNodes,
+    super.parametricNodes,
   });
 }

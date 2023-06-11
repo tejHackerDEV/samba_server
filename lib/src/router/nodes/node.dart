@@ -6,12 +6,14 @@ import 'static_node.dart';
 abstract class Node {
   final String pathSection;
   Route? route;
-  List<Node>? childNodes;
+  List<StaticNode>? staticNodes;
+  List<ParametricNode>? parametricNodes;
 
   Node(
     this.pathSection, {
     this.route,
-    this.childNodes,
+    this.staticNodes,
+    this.parametricNodes,
   });
 
   /// Create appropriate node based on the [pathSection] passed

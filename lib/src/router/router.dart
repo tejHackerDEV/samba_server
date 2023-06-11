@@ -1,4 +1,5 @@
 import 'package:samba_server/src/extensions/iterable_extension.dart';
+import 'package:samba_server/src/router/nodes/static_node.dart';
 
 import 'constants.dart';
 import 'nodes/node.dart';
@@ -30,16 +31,37 @@ class Router {
     Node currentNode = _rootNode;
     for (final pathSection in pathSections) {
       final nodeToInsert = Node.create(pathSection);
-      currentNode.childNodes ??= [];
-      final childNode = currentNode.childNodes!
-          .firstWhereOrNull((childNode) => childNode == nodeToInsert);
-      if (childNode == null) {
-        // as there is no childNode with the pathSection insert it
-        currentNode.childNodes!.add(nodeToInsert);
-        currentNode = nodeToInsert;
-      } else {
-        // as childNode already present use it directly
-        currentNode = childNode;
+      switch (nodeToInsert) {
+        case StaticNode():
+          currentNode.staticNodes ??= [];
+          final childNode = currentNode.staticNodes!.firstWhereOrNull(
+            (childNode) => childNode == nodeToInsert,
+          );
+          if (childNode == null) {
+            // as there is no childNode with the pathSection insert it
+            currentNode.staticNodes!.add(nodeToInsert);
+            currentNode = nodeToInsert;
+          } else {
+            // as childNode already present use it directly
+            currentNode = childNode;
+          }
+          break;
+        case ParametricNode():
+          currentNode.parametricNodes ??= [];
+          final childNode = currentNode.parametricNodes!.firstWhereOrNull(
+            (childNode) => childNode == nodeToInsert,
+          );
+          if (childNode == null) {
+            // as there is no childNode with the pathSection insert it
+            currentNode.parametricNodes!.add(nodeToInsert);
+            currentNode = nodeToInsert;
+          } else {
+            // as childNode already present use it directly
+            currentNode = childNode;
+          }
+          break;
+        default:
+          throw AssertionError('Invalid node detected');
       }
     }
     currentNode.route = route;
@@ -54,16 +76,14 @@ class Router {
     if (pathSections.isNotEmpty) {
       // only check for pathSections if its not empty
       for (final pathSection in pathSections) {
-        currentNode = currentNode?.childNodes?.firstWhereOrNull(
-          (childNode) {
-            if (childNode is ParametricNode) {
-              // is ParametricNode, so search dynamically
-              return true;
-            }
-            // is static node, so search as normal by pathSection
-            return childNode.pathSection == pathSection;
-          },
-        );
+        // 1. Check under static nodes.
+        currentNode = currentNode?.staticNodes?.firstWhereOrNull(
+              (childNode) => childNode.pathSection == pathSection,
+            ) ??
+            // 2. If null then check under parametric nodes.
+            currentNode?.parametricNodes?.firstWhereOrNull(
+              (childNode) => true,
+            );
         // as there is no node with the pathSection we are looking,
         // simply break the loop without going further
         if (currentNode == null) {
@@ -74,18 +94,27 @@ class Router {
     return currentNode?.route;
   }
 
-  /// Return all the child [Route]'s of a [node]
+  /// Return all the child routes of a [node]
   Iterable<Route> _getChildRoutesOfNode(Node node) {
     final routes = <Route>[];
-    if (node.childNodes == null) {
-      return routes;
-    }
-    for (final childNode in node.childNodes!) {
-      Route? routeToAdd = childNode.route;
-      if (routeToAdd != null) {
-        routes.add(routeToAdd);
+    if (node.staticNodes != null) {
+      for (final childNode in node.staticNodes!) {
+        Route? routeToAdd = childNode.route;
+        if (routeToAdd != null) {
+          routes.add(routeToAdd);
+        }
+        routes.addAll(_getChildRoutesOfNode(childNode));
       }
-      routes.addAll(_getChildRoutesOfNode(childNode));
+    }
+
+    if (node.parametricNodes != null) {
+      for (final childNode in node.parametricNodes!) {
+        Route? routeToAdd = childNode.route;
+        if (routeToAdd != null) {
+          routes.add(routeToAdd);
+        }
+        routes.addAll(_getChildRoutesOfNode(childNode));
+      }
     }
     return routes;
   }

@@ -4,6 +4,7 @@ class StaticNode extends Node {
   StaticNode(
     super.section, {
     super.route,
-    super.childNodes,
+    super.staticNodes,
+    super.parametricNodes,
   });
 }
