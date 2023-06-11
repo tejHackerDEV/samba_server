@@ -1,13 +1,14 @@
 import 'package:samba_server/src/extensions/iterable_extension.dart';
 
 import 'constants.dart';
-import 'node.dart';
+import 'nodes/node.dart';
+import 'nodes/parametric_node.dart';
 import 'route.dart';
 
 class Router {
   final Node _rootNode;
 
-  Router() : _rootNode = Node(kPathSectionDivider);
+  Router() : _rootNode = Node.create(kPathSectionDivider);
 
   /// Sanitizes the [path] & return the pathSections
   /// that can be used for processing. So Before processing
@@ -28,7 +29,7 @@ class Router {
     final pathSections = _sanitizePath(route.path);
     Node currentNode = _rootNode;
     for (final pathSection in pathSections) {
-      final nodeToInsert = Node(pathSection);
+      final nodeToInsert = Node.create(pathSection);
       currentNode.childNodes ??= [];
       final childNode = currentNode.childNodes!
           .firstWhereOrNull((childNode) => childNode == nodeToInsert);
@@ -54,7 +55,14 @@ class Router {
       // only check for pathSections if its not empty
       for (final pathSection in pathSections) {
         currentNode = currentNode?.childNodes?.firstWhereOrNull(
-          (childNode) => childNode.section == pathSection,
+          (childNode) {
+            if (childNode is ParametricNode) {
+              // is ParametricNode, so search dynamically
+              return true;
+            }
+            // is static node, so search as normal by pathSection
+            return childNode.pathSection == pathSection;
+          },
         );
         // as there is no node with the pathSection we are looking,
         // simply break the loop without going further
