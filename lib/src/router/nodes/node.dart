@@ -20,7 +20,7 @@ abstract class Node {
   static Node create(String pathSection) {
     if (pathSection[0] == '{' && pathSection[pathSection.length - 1] == '}') {
       // parametric node
-      return ParametricNode(pathSection);
+      return ParametricNode.create(pathSection);
     }
     // static node
     return StaticNode(pathSection);

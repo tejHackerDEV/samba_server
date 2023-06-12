@@ -8,7 +8,7 @@ void main() {
       Route('/users', () {}),
       Route('/users/userId', () {}),
       Route('/users/{id}', () {}),
-      Route('/users/{id}/logout', () {}),
+      Route('/users/{id:^[0-9]+\$}/logout', () {}),
       Route('/profiles', () {}),
       Route('/profiles/{id}', () {}),
     ];
@@ -23,7 +23,7 @@ void main() {
       expect(router.lookup(routesToRegister[0].path), routesToRegister[0]);
       expect(router.lookup(routesToRegister[1].path), routesToRegister[1]);
       expect(router.lookup('/users/someUserId'), routesToRegister[2]);
-      expect(router.lookup('/users/someUserId/logout'), routesToRegister[3]);
+      expect(router.lookup('/users/1234/logout'), routesToRegister[3]);
       expect(router.lookup(routesToRegister[4].path), routesToRegister[4]);
       expect(router.lookup('/profiles/someProfileId'), routesToRegister[5]);
     });
@@ -42,6 +42,7 @@ void main() {
       expect(router.lookup('random'), isNull);
       expect(router.lookup('/random'), isNull);
       expect(router.lookup('/random/random'), isNull);
+      expect(router.lookup('/users/someUserId/logout'), isNull);
     });
   });
 }
