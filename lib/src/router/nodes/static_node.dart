@@ -5,6 +5,7 @@ class StaticNode extends Node {
     super.pathSection, {
     super.route,
     super.staticNodes,
-    super.parametricNodes,
+    super.regExpParametricNodes,
+    super.nonRegExpParametricNodes,
   });
 }

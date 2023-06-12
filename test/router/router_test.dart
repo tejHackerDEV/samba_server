@@ -29,13 +29,16 @@ void main() {
     });
 
     test('Should able to lookup routes based on their priority order', () {
-      final parametricRoute = Route('/priority/{id}', () {});
+      final nonRegExpParametricRoute = Route('/priority/{id}', () {});
+      final regExpParametricRoute = Route('/priority/{id:^[0-9]+\$}', () {});
       final staticRoute = Route('/priority/id', () {});
       router
-        ..register(parametricRoute)
+        ..register(nonRegExpParametricRoute)
+        ..register(regExpParametricRoute)
         ..register(staticRoute);
       expect(router.lookup('/priority/id'), staticRoute);
-      expect(router.lookup('/priority/parametricId'), parametricRoute);
+      expect(router.lookup('/priority/parametricId'), nonRegExpParametricRoute);
+      expect(router.lookup('/priority/1234'), regExpParametricRoute);
     });
 
     test('Should not be able to lookup routes by path', () {

@@ -5,7 +5,8 @@ abstract class ParametricNode extends Node {
     super.pathSection, {
     super.route,
     super.staticNodes,
-    super.parametricNodes,
+    super.regExpParametricNodes,
+    super.nonRegExpParametricNodes,
   });
 
   /// Create appropriate node based on the [pathSection] passed
@@ -36,7 +37,8 @@ class RegExpParametricNode extends ParametricNode {
     required this.regExp,
     super.route,
     super.staticNodes,
-    super.parametricNodes,
+    super.regExpParametricNodes,
+    super.nonRegExpParametricNodes,
   });
 }
 
@@ -45,6 +47,7 @@ class NonRegExpParametricNode extends ParametricNode {
     super.pathSection, {
     super.route,
     super.staticNodes,
-    super.parametricNodes,
+    super.regExpParametricNodes,
+    super.nonRegExpParametricNodes,
   });
 }

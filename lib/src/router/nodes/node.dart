@@ -7,13 +7,15 @@ abstract class Node {
   final String pathSection;
   Route? route;
   List<StaticNode>? staticNodes;
-  List<ParametricNode>? parametricNodes;
+  List<RegExpParametricNode>? regExpParametricNodes;
+  List<NonRegExpParametricNode>? nonRegExpParametricNodes;
 
   Node(
     this.pathSection, {
     this.route,
     this.staticNodes,
-    this.parametricNodes,
+    this.regExpParametricNodes,
+    this.nonRegExpParametricNodes,
   });
 
   /// Create appropriate node based on the [pathSection] passed

@@ -47,17 +47,39 @@ class Router {
           }
           break;
         case ParametricNode():
-          currentNode.parametricNodes ??= [];
-          final childNode = currentNode.parametricNodes!.firstWhereOrNull(
-            (childNode) => childNode == nodeToInsert,
-          );
-          if (childNode == null) {
-            // as there is no childNode with the pathSection insert it
-            currentNode.parametricNodes!.add(nodeToInsert);
-            currentNode = nodeToInsert;
-          } else {
-            // as childNode already present use it directly
-            currentNode = childNode;
+          switch (nodeToInsert) {
+            case RegExpParametricNode():
+              currentNode.regExpParametricNodes ??= [];
+              final childNode =
+                  currentNode.regExpParametricNodes!.firstWhereOrNull(
+                (childNode) => childNode == nodeToInsert,
+              );
+              if (childNode == null) {
+                // as there is no childNode with the pathSection insert it
+                currentNode.regExpParametricNodes!.add(nodeToInsert);
+                currentNode = nodeToInsert;
+              } else {
+                // as childNode already present use it directly
+                currentNode = childNode;
+              }
+              break;
+            case NonRegExpParametricNode():
+              currentNode.nonRegExpParametricNodes ??= [];
+              final childNode =
+                  currentNode.nonRegExpParametricNodes!.firstWhereOrNull(
+                (childNode) => childNode == nodeToInsert,
+              );
+              if (childNode == null) {
+                // as there is no childNode with the pathSection insert it
+                currentNode.nonRegExpParametricNodes!.add(nodeToInsert);
+                currentNode = nodeToInsert;
+              } else {
+                // as childNode already present use it directly
+                currentNode = childNode;
+              }
+              break;
+            default:
+              throw AssertionError('Invalid node detected');
           }
           break;
         default:
@@ -92,33 +114,55 @@ class Router {
 
         // 2. If tempNode null then check under parametric nodes.
         if (tempNode == null) {
-          if (currentNode?.parametricNodes != null) {
-            for (final parametricNode in currentNode!.parametricNodes!) {
+          Route? lookupUnderParametricNodes(
+            Iterable<ParametricNode> parametricNodes,
+          ) {
+            for (final parametricNode in parametricNodes) {
               final bool didPathSectionMatched;
               switch (parametricNode) {
                 case NonRegExpParametricNode():
                   didPathSectionMatched = true;
                 case RegExpParametricNode():
-                  didPathSectionMatched =
-                      parametricNode.regExp.hasMatch(pathSection);
+                  didPathSectionMatched = parametricNode.regExp.hasMatch(
+                    pathSection,
+                  );
                   break;
                 default:
                   throw AssertionError('Invalid parametric node detected');
               }
 
               if (didPathSectionMatched) {
-                // If pathSection is matched then try to lookup
-                // with the parametricNode under the remaining pathSections
-                final routeToReturn = _lookup(
+                return _lookup(
                   pathSections.skip(i + 1),
                   parametricNode,
                 );
-                // if the route found then return it directly, instead
-                // of going further
-                if (routeToReturn != null) {
-                  return routeToReturn;
-                }
               }
+            }
+            return null;
+          }
+
+          // 1. Check under regExpNodes first
+          if (currentNode?.regExpParametricNodes != null) {
+            final routeToReturn = lookupUnderParametricNodes(
+              currentNode!.regExpParametricNodes!,
+            );
+            // if the route found then return it directly, instead
+            // of going further
+            if (routeToReturn != null) {
+              return routeToReturn;
+            }
+          }
+
+          // 2. As we are here it mean no route found under regExpNodes
+          // so check under nonRegExpNodes
+          if (currentNode?.nonRegExpParametricNodes != null) {
+            final routeToReturn = lookupUnderParametricNodes(
+              currentNode!.nonRegExpParametricNodes!,
+            );
+            // if the route found then return it directly, instead
+            // of going further
+            if (routeToReturn != null) {
+              return routeToReturn;
             }
           }
         }
@@ -149,8 +193,18 @@ class Router {
       }
     }
 
-    if (node.parametricNodes != null) {
-      for (final childNode in node.parametricNodes!) {
+    if (node.regExpParametricNodes != null) {
+      for (final childNode in node.regExpParametricNodes!) {
+        Route? routeToAdd = childNode.route;
+        if (routeToAdd != null) {
+          routes.add(routeToAdd);
+        }
+        routes.addAll(_getChildRoutesOfNode(childNode));
+      }
+    }
+
+    if (node.nonRegExpParametricNodes != null) {
+      for (final childNode in node.nonRegExpParametricNodes!) {
         Route? routeToAdd = childNode.route;
         if (routeToAdd != null) {
           routes.add(routeToAdd);
