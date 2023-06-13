@@ -5,8 +5,8 @@ void main() {
   group('Wildcard Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/profiles/{id}/*', () {}),
       Route('/profiles/{id:^[0-9]+\$}/*', () {}),
+      Route('/profiles/{id}/*', () {}),
     ];
 
     setUp(() {
@@ -15,13 +15,17 @@ void main() {
       }
     });
 
+    test('Should able to register routes', () {
+      expect(router.routes, routesToRegister);
+    });
+
     test('Should able to lookup routes by path', () {
       expect(
-        router.lookup('/profiles/random/anotherRandom'),
+        router.lookup('/profiles/1234/anotherRandom'),
         routesToRegister[0],
       );
       expect(
-        router.lookup('/profiles/1234/anotherRandom'),
+        router.lookup('/profiles/random/anotherRandom'),
         routesToRegister[1],
       );
     });

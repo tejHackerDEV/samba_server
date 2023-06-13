@@ -211,6 +211,10 @@ class Router {
             if (routeToAdd != null) {
               routes.add(routeToAdd);
             }
+            routeToAdd = childNode.wildcardNode?.route;
+            if (routeToAdd != null) {
+              routes.add(routeToAdd);
+            }
             routes.addAll(_getChildRoutesOfNode(childNode));
           }
         }
@@ -218,6 +222,10 @@ class Router {
         if (node.regExpParametricNodes != null) {
           for (final childNode in node.regExpParametricNodes!) {
             routeToAdd = childNode.route;
+            if (routeToAdd != null) {
+              routes.add(routeToAdd);
+            }
+            routeToAdd = childNode.wildcardNode?.route;
             if (routeToAdd != null) {
               routes.add(routeToAdd);
             }
@@ -231,10 +239,18 @@ class Router {
             if (routeToAdd != null) {
               routes.add(routeToAdd);
             }
+            routeToAdd = childNode.wildcardNode?.route;
+            if (routeToAdd != null) {
+              routes.add(routeToAdd);
+            }
             routes.addAll(_getChildRoutesOfNode(childNode));
           }
         }
         break;
+      default:
+        throw UnsupportedError(
+          'Unsupported node detected',
+        );
     }
     return routes;
   }
@@ -242,8 +258,12 @@ class Router {
   /// Returns all routes inserted into router
   Iterable<Route> get routes {
     final routes = <Route>[];
-    Node? currentNode = _rootNode;
+    StaticNode? currentNode = _rootNode;
     Route? routeToAdd = currentNode.route;
+    if (routeToAdd != null) {
+      routes.add(routeToAdd);
+    }
+    routeToAdd = currentNode.wildcardNode?.route;
     if (routeToAdd != null) {
       routes.add(routeToAdd);
     }
