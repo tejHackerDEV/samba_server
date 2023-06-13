@@ -79,11 +79,11 @@ class Router {
               }
               break;
             default:
-              throw AssertionError('Invalid node detected');
+              throw UnsupportedError('Invalid node detected');
           }
           break;
         default:
-          throw AssertionError('Invalid node detected');
+          throw UnsupportedError('Invalid node detected');
       }
     }
     currentNode.route = route;
@@ -128,7 +128,7 @@ class Router {
                   );
                   break;
                 default:
-                  throw AssertionError('Invalid parametric node detected');
+                  throw UnsupportedError('Invalid parametric node detected');
               }
 
               if (didPathSectionMatched) {
