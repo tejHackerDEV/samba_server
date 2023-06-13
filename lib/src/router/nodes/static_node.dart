@@ -7,5 +7,6 @@ class StaticNode extends Node {
     super.staticNodes,
     super.regExpParametricNodes,
     super.nonRegExpParametricNodes,
+    super.wildcardNode,
   });
 }

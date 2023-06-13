@@ -4,6 +4,7 @@ import 'package:samba_server/src/router/nodes/static_node.dart';
 import 'constants.dart';
 import 'nodes/node.dart';
 import 'nodes/parametric_node.dart';
+import 'nodes/wildcard_node.dart';
 import 'route.dart';
 
 class Router {
@@ -82,6 +83,10 @@ class Router {
               throw UnsupportedError('Invalid node detected');
           }
           break;
+        case WildcardNode():
+          currentNode.wildcardNode = nodeToInsert;
+          currentNode = nodeToInsert;
+          break;
         default:
           throw UnsupportedError('Invalid node detected');
       }
@@ -101,12 +106,21 @@ class Router {
   /// with the given [pathSections].
   /// <br>
   /// If no `route` is registered then returns `null`.
-  Route? _lookup(Iterable<String> pathSections, Node? currentNode) {
+  Route? _lookup(
+    Iterable<String> pathSections,
+    Node? currentNode, {
+    Node? previousWildCardNode,
+  }) {
     if (pathSections.isNotEmpty) {
       // only check for pathSections if its not empty
       Node? tempNode = currentNode;
       for (int i = 0; i < pathSections.length; ++i) {
         final pathSection = pathSections.elementAt(i);
+        // only update the previousWildCardNode if the currentNode's
+        // wildcardNode is not null
+        if (currentNode?.wildcardNode != null) {
+          previousWildCardNode = currentNode?.wildcardNode;
+        }
         // 1. Check under static nodes.
         tempNode = currentNode?.staticNodes?.firstWhereOrNull(
           (childNode) => childNode.pathSection == pathSection,
@@ -135,6 +149,7 @@ class Router {
                 return _lookup(
                   pathSections.skip(i + 1),
                   parametricNode,
+                  previousWildCardNode: previousWildCardNode,
                 );
               }
             }
@@ -166,6 +181,9 @@ class Router {
             }
           }
         }
+
+        // 3. If tempNode null then use the wildcard node directly.
+        tempNode ??= previousWildCardNode;
 
         // finally assign tempNode to currentNode
         currentNode = tempNode;
