@@ -1,6 +1,6 @@
-import 'node.dart';
+import 'predictable_node.dart';
 
-class StaticNode extends Node {
+class StaticNode extends PredictableNode {
   StaticNode(
     super.pathSection, {
     super.route,

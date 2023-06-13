@@ -1,6 +1,6 @@
-import 'node.dart';
+import 'predictable_node.dart';
 
-abstract class ParametricNode extends Node {
+abstract class ParametricNode extends PredictableNode {
   ParametricNode(
     super.pathSection, {
     super.route,

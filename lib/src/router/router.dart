@@ -1,16 +1,17 @@
 import 'package:samba_server/src/extensions/iterable_extension.dart';
-import 'package:samba_server/src/router/nodes/static_node.dart';
 
 import 'constants.dart';
 import 'nodes/node.dart';
-import 'nodes/parametric_node.dart';
+import 'nodes/predictable_nodes/parametric_node.dart';
+import 'nodes/predictable_nodes/predictable_node.dart';
+import 'nodes/predictable_nodes/static_node.dart';
 import 'nodes/wildcard_node.dart';
 import 'route.dart';
 
 class Router {
-  final Node _rootNode;
+  final StaticNode _rootNode;
 
-  Router() : _rootNode = Node.create(kPathSectionDivider);
+  Router() : _rootNode = StaticNode(kPathSectionDivider);
 
   /// Sanitizes the [path] & return the pathSections
   /// that can be used for processing. So Before processing
@@ -28,68 +29,69 @@ class Router {
 
   /// Register a new [route]
   void register(Route route) {
+    Node insertNodeInto(Node into, Node node) {
+      PredictableNode appendNodeInto(
+          List<PredictableNode> into, PredictableNode node) {
+        final childNode = into.firstWhereOrNull(
+          (childNode) => childNode == node,
+        );
+        if (childNode != null) {
+          // as childNode already present use it directly
+          return childNode;
+        }
+        // as there is no childNode with the pathSection insert it
+        into.add(node);
+        return node;
+      }
+
+      switch (into) {
+        case PredictableNode():
+          switch (node) {
+            case StaticNode():
+              return appendNodeInto(
+                into.staticNodes ??= [],
+                node,
+              );
+            case ParametricNode():
+              switch (node) {
+                case RegExpParametricNode():
+                  return appendNodeInto(
+                    into.regExpParametricNodes ??= [],
+                    node,
+                  );
+                case NonRegExpParametricNode():
+                  return appendNodeInto(
+                    into.nonRegExpParametricNodes ??= [],
+                    node,
+                  );
+                default:
+                  throw UnsupportedError(
+                    'Unable to insert into a unknown parametric node',
+                  );
+              }
+            case WildcardNode():
+              into.wildcardNode = node;
+              return node;
+            default:
+              throw UnsupportedError(
+                'Cannot insert a node into a unsupported node',
+              );
+          }
+        case WildcardNode():
+          throw UnsupportedError(
+            'Cannot insert a node into a wildcard node. This basically happens when there is an extra pathSections present after the wildcard.',
+          );
+        default:
+          throw UnsupportedError(
+            'Cannot insert a node into a unsupported node',
+          );
+      }
+    }
+
     final pathSections = _sanitizePath(route.path);
     Node currentNode = _rootNode;
     for (final pathSection in pathSections) {
-      final nodeToInsert = Node.create(pathSection);
-      switch (nodeToInsert) {
-        case StaticNode():
-          currentNode.staticNodes ??= [];
-          final childNode = currentNode.staticNodes!.firstWhereOrNull(
-            (childNode) => childNode == nodeToInsert,
-          );
-          if (childNode == null) {
-            // as there is no childNode with the pathSection insert it
-            currentNode.staticNodes!.add(nodeToInsert);
-            currentNode = nodeToInsert;
-          } else {
-            // as childNode already present use it directly
-            currentNode = childNode;
-          }
-          break;
-        case ParametricNode():
-          switch (nodeToInsert) {
-            case RegExpParametricNode():
-              currentNode.regExpParametricNodes ??= [];
-              final childNode =
-                  currentNode.regExpParametricNodes!.firstWhereOrNull(
-                (childNode) => childNode == nodeToInsert,
-              );
-              if (childNode == null) {
-                // as there is no childNode with the pathSection insert it
-                currentNode.regExpParametricNodes!.add(nodeToInsert);
-                currentNode = nodeToInsert;
-              } else {
-                // as childNode already present use it directly
-                currentNode = childNode;
-              }
-              break;
-            case NonRegExpParametricNode():
-              currentNode.nonRegExpParametricNodes ??= [];
-              final childNode =
-                  currentNode.nonRegExpParametricNodes!.firstWhereOrNull(
-                (childNode) => childNode == nodeToInsert,
-              );
-              if (childNode == null) {
-                // as there is no childNode with the pathSection insert it
-                currentNode.nonRegExpParametricNodes!.add(nodeToInsert);
-                currentNode = nodeToInsert;
-              } else {
-                // as childNode already present use it directly
-                currentNode = childNode;
-              }
-              break;
-            default:
-              throw UnsupportedError('Invalid node detected');
-          }
-          break;
-        case WildcardNode():
-          currentNode.wildcardNode = nodeToInsert;
-          currentNode = nodeToInsert;
-          break;
-        default:
-          throw UnsupportedError('Invalid node detected');
-      }
+      currentNode = insertNodeInto(currentNode, Node.create(pathSection));
     }
     currentNode.route = route;
   }
@@ -108,18 +110,18 @@ class Router {
   /// If no `route` is registered then returns `null`.
   Route? _lookup(
     Iterable<String> pathSections,
-    Node? currentNode, {
-    Node? previousWildCardNode,
+    PredictableNode? currentNode, {
+    WildcardNode? previouslyMatchedWildcardNode,
   }) {
     if (pathSections.isNotEmpty) {
       // only check for pathSections if its not empty
-      Node? tempNode = currentNode;
+      PredictableNode? tempNode = currentNode;
       for (int i = 0; i < pathSections.length; ++i) {
         final pathSection = pathSections.elementAt(i);
         // only update the previousWildCardNode if the currentNode's
         // wildcardNode is not null
         if (currentNode?.wildcardNode != null) {
-          previousWildCardNode = currentNode?.wildcardNode;
+          previouslyMatchedWildcardNode = currentNode?.wildcardNode;
         }
         // 1. Check under static nodes.
         tempNode = currentNode?.staticNodes?.firstWhereOrNull(
@@ -149,7 +151,7 @@ class Router {
                 return _lookup(
                   pathSections.skip(i + 1),
                   parametricNode,
-                  previousWildCardNode: previousWildCardNode,
+                  previouslyMatchedWildcardNode: previouslyMatchedWildcardNode,
                 );
               }
             }
@@ -182,9 +184,6 @@ class Router {
           }
         }
 
-        // 3. If tempNode null then use the wildcard node directly.
-        tempNode ??= previousWildCardNode;
-
         // finally assign tempNode to currentNode
         currentNode = tempNode;
 
@@ -195,40 +194,47 @@ class Router {
         }
       }
     }
-    return currentNode?.route;
+    // 3. If currentNode is null then try to return the
+    // matched wildcard if any
+    return (currentNode ?? previouslyMatchedWildcardNode)?.route;
   }
 
   /// Return all the child routes of a [node]
   Iterable<Route> _getChildRoutesOfNode(Node node) {
     final routes = <Route>[];
-    if (node.staticNodes != null) {
-      for (final childNode in node.staticNodes!) {
-        Route? routeToAdd = childNode.route;
-        if (routeToAdd != null) {
-          routes.add(routeToAdd);
+    Route? routeToAdd;
+    switch (node) {
+      case PredictableNode():
+        if (node.staticNodes != null) {
+          for (final childNode in node.staticNodes!) {
+            routeToAdd = childNode.route;
+            if (routeToAdd != null) {
+              routes.add(routeToAdd);
+            }
+            routes.addAll(_getChildRoutesOfNode(childNode));
+          }
         }
-        routes.addAll(_getChildRoutesOfNode(childNode));
-      }
-    }
 
-    if (node.regExpParametricNodes != null) {
-      for (final childNode in node.regExpParametricNodes!) {
-        Route? routeToAdd = childNode.route;
-        if (routeToAdd != null) {
-          routes.add(routeToAdd);
+        if (node.regExpParametricNodes != null) {
+          for (final childNode in node.regExpParametricNodes!) {
+            routeToAdd = childNode.route;
+            if (routeToAdd != null) {
+              routes.add(routeToAdd);
+            }
+            routes.addAll(_getChildRoutesOfNode(childNode));
+          }
         }
-        routes.addAll(_getChildRoutesOfNode(childNode));
-      }
-    }
 
-    if (node.nonRegExpParametricNodes != null) {
-      for (final childNode in node.nonRegExpParametricNodes!) {
-        Route? routeToAdd = childNode.route;
-        if (routeToAdd != null) {
-          routes.add(routeToAdd);
+        if (node.nonRegExpParametricNodes != null) {
+          for (final childNode in node.nonRegExpParametricNodes!) {
+            routeToAdd = childNode.route;
+            if (routeToAdd != null) {
+              routes.add(routeToAdd);
+            }
+            routes.addAll(_getChildRoutesOfNode(childNode));
+          }
         }
-        routes.addAll(_getChildRoutesOfNode(childNode));
-      }
+        break;
     }
     return routes;
   }
