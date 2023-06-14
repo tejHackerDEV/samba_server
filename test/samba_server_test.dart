@@ -35,9 +35,16 @@ void main() {
     setUpAll(() => httpServer.bind(address: address, port: port));
 
     test('Server should listen to incoming requests', () async {
-      final response = await http.get(httpServer.uri);
+      final responseToSend = 'Hello from SAMBA_SERVER';
+      httpServer.registerRoute(
+        Route(httpServer.uri.path, (_) => responseToSend),
+      );
+      http.Response response = await http.get(httpServer.uri);
       expect(response.statusCode, 200);
-      expect(response.body, 'Hello from SAMBA_SERVER');
+      expect(response.body, responseToSend);
+
+      response = await http.get(Uri.parse('${httpServer.uri}/random'));
+      expect(response.statusCode, 404);
     });
 
     tearDownAll(() => httpServer.shutdown());

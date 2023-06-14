@@ -5,10 +5,10 @@ void main() {
   group('RegExpParametric Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/users/{id:^[0-9]+\$}', () {}),
-      Route('/users/{id:^[a-z]+\$}/logout', () {}),
-      Route('/users/{id:^[A-Z]+\$}/logout', () {}),
-      Route('/users/{id:^[A-Z0-9a-z]+\$}/logout', () {}),
+      Route('/users/{id:^[0-9]+\$}', (request) {}),
+      Route('/users/{id:^[a-z]+\$}/logout', (request) {}),
+      Route('/users/{id:^[A-Z]+\$}/logout', (request) {}),
+      Route('/users/{id:^[A-Z0-9a-z]+\$}/logout', (request) {}),
     ];
 
     setUp(() {

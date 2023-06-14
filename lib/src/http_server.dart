@@ -1,6 +1,9 @@
 import 'dart:io' as io;
 
-class HttpServer {
+import 'request.dart';
+import 'router/index.dart';
+
+class HttpServer with RouterMixin {
   /// Holds the underlying [io.HttpServer] instance.
   io.HttpServer? _ioHttpServer;
 
@@ -38,7 +41,18 @@ class HttpServer {
   void _listerForIncomingRequests() {
     _assertServerRunning();
     _ioHttpServer!.listen((ioHttpRequest) async {
-      ioHttpRequest.response.write('Hello from SAMBA_SERVER');
+      final request = Request(ioHttpRequest);
+      final route = lookupRoute(request.uri.path);
+      if (route == null) {
+        // set statusCode as 404 because route not registered
+        ioHttpRequest.response.statusCode = io.HttpStatus.notFound;
+      } else {
+        // route found so invoke it.
+        final responseToSend = await route.handler(request);
+        if (responseToSend != null) {
+          ioHttpRequest.response.write(responseToSend);
+        }
+      }
       // need to close response to send it back to the client
       return ioHttpRequest.response.close();
     });

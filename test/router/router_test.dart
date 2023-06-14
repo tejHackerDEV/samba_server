@@ -5,14 +5,14 @@ void main() {
   group('Router tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/users', () {}),
-      Route('/users/userId', () {}),
-      Route('/users/{id}', () {}),
-      Route('/users/{id:^[0-9]+\$}/logout', () {}),
-      Route('/profiles', () {}),
-      Route('/profiles/{id}', () {}),
-      Route('/profiles/{id}/*', () {}),
-      Route('/profiles/{id:^[0-9]+\$}/*', () {}),
+      Route('/users', (request) {}),
+      Route('/users/userId', (request) {}),
+      Route('/users/{id}', (request) {}),
+      Route('/users/{id:^[0-9]+\$}/logout', (request) {}),
+      Route('/profiles', (request) {}),
+      Route('/profiles/{id}', (request) {}),
+      Route('/profiles/{id}/*', (request) {}),
+      Route('/profiles/{id:^[0-9]+\$}/*', (request) {}),
     ];
 
     setUp(() {
@@ -39,10 +39,13 @@ void main() {
     });
 
     test('Should able to lookup routes based on their priority order', () {
-      final wildcardRoute = Route('/priority/*', () {});
-      final nonRegExpParametricRoute = Route('/priority/{id}', () {});
-      final regExpParametricRoute = Route('/priority/{id:^[0-9]+\$}', () {});
-      final staticRoute = Route('/priority/id', () {});
+      final wildcardRoute = Route('/priority/*', (request) {});
+      final nonRegExpParametricRoute = Route('/priority/{id}', (request) {});
+      final regExpParametricRoute = Route(
+        '/priority/{id:^[0-9]+\$}',
+        (request) {},
+      );
+      final staticRoute = Route('/priority/id', (request) {});
       router
         ..register(wildcardRoute)
         ..register(nonRegExpParametricRoute)

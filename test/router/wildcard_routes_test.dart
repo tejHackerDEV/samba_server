@@ -5,8 +5,8 @@ void main() {
   group('Wildcard Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/profiles/{id:^[0-9]+\$}/*', () {}),
-      Route('/profiles/{id}/*', () {}),
+      Route('/profiles/{id:^[0-9]+\$}/*', (request) {}),
+      Route('/profiles/{id}/*', (request) {}),
     ];
 
     setUp(() {

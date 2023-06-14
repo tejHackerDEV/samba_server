@@ -5,9 +5,9 @@ void main() {
   group('Static Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/users', () {}),
-      Route('/users/userId', () {}),
-      Route('/profiles', () {}),
+      Route('/users', (request) {}),
+      Route('/users/userId', (request) {}),
+      Route('/profiles', (request) {}),
     ];
 
     setUp(() {

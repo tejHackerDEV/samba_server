@@ -5,9 +5,9 @@ void main() {
   group('NonRegExpParametric Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/users/{id}', () {}),
-      Route('/users/{id}/logout', () {}),
-      Route('/profiles/{id}', () {}),
+      Route('/users/{id}', (request) {}),
+      Route('/users/{id}/logout', (request) {}),
+      Route('/profiles/{id}', (request) {}),
     ];
 
     setUp(() {
