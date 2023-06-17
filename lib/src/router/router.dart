@@ -1,5 +1,6 @@
 import 'package:samba_server/src/extensions/iterable_extension.dart';
 
+import '../helpers/index.dart';
 import 'constants.dart';
 import 'nodes/node.dart';
 import 'nodes/predictable_nodes/parametric_node.dart';
@@ -9,9 +10,14 @@ import 'nodes/wildcard_node.dart';
 import 'route.dart';
 
 class Router {
-  final StaticNode _rootNode;
+  /// Holds the rootNode of each `HttpMethod` under their respective key
+  final _nodeMap = <HttpMethod, Node>{};
 
-  Router() : _rootNode = StaticNode(kPathSectionDivider);
+  Router() {
+    for (final httpMethod in HttpMethod.values) {
+      _nodeMap[httpMethod] = StaticNode(kPathSectionDivider);
+    }
+  }
 
   /// Sanitizes the [path] & return the pathSections
   /// that can be used for processing. So Before processing
@@ -89,19 +95,20 @@ class Router {
     }
 
     final pathSections = _sanitizePath(route.path);
-    Node currentNode = _rootNode;
+    Node currentNode = _nodeMap[route.httpMethod]!;
     for (final pathSection in pathSections) {
       currentNode = insertNodeInto(currentNode, Node.create(pathSection));
     }
     currentNode.route = route;
   }
 
-  /// Lookup for a `route` that has been registered by [path].
+  /// Lookup for a `route` that has been registered by [path]
+  /// under the respected [httpMethod].
   /// <br>
   /// If no `route` is registered with [path] returns `null`.
-  Route? lookup(String path) {
+  Route? lookup(HttpMethod httpMethod, String path) {
     final pathSections = _sanitizePath(path);
-    return _lookup(pathSections, _rootNode);
+    return _lookup(pathSections, _nodeMap[httpMethod] as StaticNode);
   }
 
   /// Lookup for a `route` under the [currentNode]
@@ -258,16 +265,18 @@ class Router {
   /// Returns all routes inserted into router
   Iterable<Route> get routes {
     final routes = <Route>[];
-    StaticNode? currentNode = _rootNode;
-    Route? routeToAdd = currentNode.route;
-    if (routeToAdd != null) {
-      routes.add(routeToAdd);
-    }
-    routeToAdd = currentNode.wildcardNode?.route;
-    if (routeToAdd != null) {
-      routes.add(routeToAdd);
-    }
-    routes.addAll(_getChildRoutesOfNode(_rootNode));
+    _nodeMap.forEach((key, value) {
+      StaticNode currentNode = value as StaticNode;
+      Route? routeToAdd = currentNode.route;
+      if (routeToAdd != null) {
+        routes.add(routeToAdd);
+      }
+      routeToAdd = currentNode.wildcardNode?.route;
+      if (routeToAdd != null) {
+        routes.add(routeToAdd);
+      }
+      routes.addAll(_getChildRoutesOfNode(currentNode));
+    });
     return routes;
   }
 }

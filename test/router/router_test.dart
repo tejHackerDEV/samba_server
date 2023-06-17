@@ -5,14 +5,38 @@ void main() {
   group('Router tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/users', (request) {}),
-      Route('/users/userId', (request) {}),
-      Route('/users/{id}', (request) {}),
-      Route('/users/{id:^[0-9]+\$}/logout', (request) {}),
-      Route('/profiles', (request) {}),
-      Route('/profiles/{id}', (request) {}),
-      Route('/profiles/{id}/*', (request) {}),
-      Route('/profiles/{id:^[0-9]+\$}/*', (request) {}),
+      Route(HttpMethod.get, '/users', handler: (request) {
+        return 'Get users data';
+      }),
+      Route(HttpMethod.get, '/users/id', handler: (request) {
+        return 'Get user data who\'s id is id';
+      }),
+      Route(HttpMethod.get, '/users/{id}', handler: (request) {
+        return 'Get a user data';
+      }),
+      Route(
+        HttpMethod.get,
+        '/users/{id:^[0-9]+\$}/logout',
+        handler: (request) {
+          return 'Logout a user but his/her id should contain only numbers';
+        },
+      ),
+      Route(HttpMethod.get, '/profiles', handler: (request) {
+        return 'Get profiles data';
+      }),
+      Route(HttpMethod.get, '/profiles/{id}', handler: (request) {
+        return 'Get a profile data';
+      }),
+      Route(HttpMethod.get, '/profiles/{id}/*', handler: (request) {
+        return 'Handle any get routes that goes after the profileId';
+      }),
+      Route(
+        HttpMethod.get,
+        '/profiles/{id:^[0-9]+\$}/*',
+        handler: (request) {
+          return 'Get a profile but his/her id should contain only numbers';
+        },
+      ),
     ];
 
     setUp(() {
@@ -22,47 +46,98 @@ void main() {
     });
 
     test('Should able to lookup routes by path', () {
-      expect(router.lookup(routesToRegister[0].path), routesToRegister[0]);
-      expect(router.lookup(routesToRegister[1].path), routesToRegister[1]);
-      expect(router.lookup('/users/someUserId'), routesToRegister[2]);
-      expect(router.lookup('/users/1234/logout'), routesToRegister[3]);
-      expect(router.lookup(routesToRegister[4].path), routesToRegister[4]);
-      expect(router.lookup('/profiles/someProfileId'), routesToRegister[5]);
       expect(
-        router.lookup('/profiles/random/anotherRandom'),
+        router.lookup(HttpMethod.get, routesToRegister[0].path),
+        routesToRegister[0],
+      );
+      expect(
+        router.lookup(HttpMethod.get, routesToRegister[1].path),
+        routesToRegister[1],
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/users/someUserId'),
+        routesToRegister[2],
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/users/1234/logout'),
+        routesToRegister[3],
+      );
+      expect(
+        router.lookup(HttpMethod.get, routesToRegister[4].path),
+        routesToRegister[4],
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/profiles/someProfileId'),
+        routesToRegister[5],
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/profiles/random/anotherRandom'),
         routesToRegister[6],
       );
       expect(
-        router.lookup('/profiles/1234/anotherRandom'),
+        router.lookup(HttpMethod.get, '/profiles/1234/anotherRandom'),
         routesToRegister[7],
       );
     });
 
     test('Should able to lookup routes based on their priority order', () {
-      final wildcardRoute = Route('/priority/*', (request) {});
-      final nonRegExpParametricRoute = Route('/priority/{id}', (request) {});
-      final regExpParametricRoute = Route(
-        '/priority/{id:^[0-9]+\$}',
-        (request) {},
+      final wildcardRoute = Route(
+        HttpMethod.get,
+        '/priority/*',
+        handler: (request) {
+          return 'Handle any get routes that goes after the priority';
+        },
       );
-      final staticRoute = Route('/priority/id', (request) {});
+      final nonRegExpParametricRoute = Route(
+        HttpMethod.get,
+        '/priority/{id}',
+        handler: (request) {
+          return 'Get a priority data';
+        },
+      );
+      final regExpParametricRoute = Route(
+        HttpMethod.get,
+        '/priority/{id:^[0-9]+\$}',
+        handler: (request) {
+          return 'Get a priority data but its id should contain only numbers';
+        },
+      );
+      final staticRoute = Route(
+        HttpMethod.get,
+        '/priority/id',
+        handler: (request) {
+          return 'Get priority data who\'s id is id';
+        },
+      );
       router
         ..register(wildcardRoute)
         ..register(nonRegExpParametricRoute)
         ..register(regExpParametricRoute)
         ..register(staticRoute);
-      expect(router.lookup('/priority/id'), staticRoute);
-      expect(router.lookup('/priority/parametricId'), nonRegExpParametricRoute);
-      expect(router.lookup('/priority/1234'), regExpParametricRoute);
-      expect(router.lookup('/priority/1234/random'), wildcardRoute);
-      expect(router.lookup('/priority/parametricId/random'), wildcardRoute);
+      expect(router.lookup(HttpMethod.get, '/priority/id'), staticRoute);
+      expect(
+        router.lookup(HttpMethod.get, '/priority/parametricId'),
+        nonRegExpParametricRoute,
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/priority/1234'),
+        regExpParametricRoute,
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/priority/1234/random'),
+        wildcardRoute,
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/priority/parametricId/random'),
+        wildcardRoute,
+      );
     });
 
     test('Should not be able to lookup routes by path', () {
-      expect(router.lookup('random'), isNull);
-      expect(router.lookup('/random'), isNull);
-      expect(router.lookup('/random/random'), isNull);
-      expect(router.lookup('/users/someUserId/logout'), isNull);
+      expect(router.lookup(HttpMethod.get, 'random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/random/random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/users/someUserId/logout'), isNull);
     });
   });
 }

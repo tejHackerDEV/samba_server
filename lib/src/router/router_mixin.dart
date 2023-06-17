@@ -1,3 +1,4 @@
+import '../helpers/index.dart';
 import 'route.dart';
 import 'router.dart';
 
@@ -9,6 +10,10 @@ mixin RouterMixin {
   /// Registers a [route]
   void registerRoute(Route route) => _router.register(route);
 
-  /// Return a `route` registered with the [path] provided
-  Route? lookupRoute(String path) => _router.lookup(path);
+  /// Return a `route` registered with the [path] provided under
+  /// respective [httpMethod]
+  Route? lookupRoute(HttpMethod httpMethod, String path) => _router.lookup(
+        httpMethod,
+        path,
+      );
 }

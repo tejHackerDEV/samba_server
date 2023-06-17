@@ -1,10 +1,16 @@
+import '../helpers/index.dart';
 import 'typedefs.dart';
 
 class Route {
+  final HttpMethod httpMethod;
   final String path;
   final RouteHandler handler;
 
-  Route(this.path, this.handler);
+  Route(
+    this.httpMethod,
+    this.path, {
+    required this.handler,
+  });
 
   @override
   String toString() => path;
@@ -15,12 +21,14 @@ class Route {
   /// If no properties passed then a new deep clone will be created
   /// on which the operation is performed.
   Route copyWith({
+    HttpMethod? httpMethod,
     String? path,
     RouteHandler? handler,
   }) =>
       Route(
+        httpMethod ?? this.httpMethod,
         path ?? this.path,
-        handler ?? this.handler,
+        handler: handler ?? this.handler,
       );
 
   @override

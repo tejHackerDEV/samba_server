@@ -37,7 +37,11 @@ void main() {
     test('Server should listen to incoming requests', () async {
       final responseToSend = 'Hello from SAMBA_SERVER';
       httpServer.registerRoute(
-        Route(httpServer.uri.path, (_) => responseToSend),
+        Route(
+          HttpMethod.get,
+          httpServer.uri.path,
+          handler: (_) => responseToSend,
+        ),
       );
       http.Response response = await http.get(httpServer.uri);
       expect(response.statusCode, 200);

@@ -1,5 +1,9 @@
 import 'dart:io' as io;
 
+import 'package:samba_server/src/extensions/iterable_extension.dart';
+
+import '../helpers/index.dart';
+
 extension IOHttpRequestExtension on io.HttpRequest {
   /// Extracts the headers in the key value format.
   /// In extraction process values will be reduced
@@ -10,5 +14,10 @@ extension IOHttpRequestExtension on io.HttpRequest {
       map[name] = values.join(',');
     });
     return map;
+  }
+
+  HttpMethod? extractHttpMethod() {
+    return HttpMethod.values.firstWhereOrNull(
+        (httpMethod) => httpMethod.name.toLowerCase() == method.toLowerCase());
   }
 }

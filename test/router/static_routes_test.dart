@@ -5,9 +5,15 @@ void main() {
   group('Static Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/users', (request) {}),
-      Route('/users/userId', (request) {}),
-      Route('/profiles', (request) {}),
+      Route(HttpMethod.get, '/users', handler: (request) {
+        return 'Get users data';
+      }),
+      Route(HttpMethod.get, '/users/id', handler: (request) {
+        return 'Get user data who\'s id is id';
+      }),
+      Route(HttpMethod.get, '/profiles', handler: (request) {
+        return 'Get profiles data';
+      }),
     ];
 
     setUp(() {
@@ -22,14 +28,14 @@ void main() {
 
     test('Should able to lookup routes by path', () {
       for (final route in routesToRegister) {
-        expect(router.lookup(route.path), route);
+        expect(router.lookup(HttpMethod.get, route.path), route);
       }
     });
 
     test('Should not be able to lookup routes by path', () {
-      expect(router.lookup('random'), isNull);
-      expect(router.lookup('/random'), isNull);
-      expect(router.lookup('/random/random'), isNull);
+      expect(router.lookup(HttpMethod.get, 'random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/random/random'), isNull);
     });
   });
 }

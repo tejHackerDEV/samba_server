@@ -42,16 +42,21 @@ class HttpServer with RouterMixin {
     _assertServerRunning();
     _ioHttpServer!.listen((ioHttpRequest) async {
       final request = Request(ioHttpRequest);
-      final route = lookupRoute(request.uri.path);
-      if (route == null) {
-        // set statusCode as 404 because route not registered
-        ioHttpRequest.response.statusCode = io.HttpStatus.notFound;
-      } else {
-        // route found so invoke it.
-        final responseToSend = await route.handler(request);
-        if (responseToSend != null) {
-          ioHttpRequest.response.write(responseToSend);
+      try {
+        final route = lookupRoute(request.httpMethod, request.uri.path);
+        if (route == null) {
+          // set statusCode as 404 because route not registered
+          ioHttpRequest.response.statusCode = io.HttpStatus.notFound;
+        } else {
+          // route found so invoke it.
+          final responseToSend = await route.handler(request);
+          if (responseToSend != null) {
+            ioHttpRequest.response.write(responseToSend);
+          }
         }
+      } on UnsupportedError catch (error) {
+        ioHttpRequest.response.statusCode = io.HttpStatus.methodNotAllowed;
+        ioHttpRequest.response.write(error);
       }
       // need to close response to send it back to the client
       return ioHttpRequest.response.close();

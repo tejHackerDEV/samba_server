@@ -5,10 +5,22 @@ void main() {
   group('RegExpParametric Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route('/users/{id:^[0-9]+\$}', (request) {}),
-      Route('/users/{id:^[a-z]+\$}/logout', (request) {}),
-      Route('/users/{id:^[A-Z]+\$}/logout', (request) {}),
-      Route('/users/{id:^[A-Z0-9a-z]+\$}/logout', (request) {}),
+      Route(HttpMethod.get, '/users/{id:^[0-9]+\$}', handler: (request) {
+        return 'Get user data but his/her id should contain only numbers';
+      }),
+      Route(HttpMethod.get, '/users/{id:^[a-z]+\$}/logout', handler: (request) {
+        return 'Logout a user but his/her id should contain only small letters';
+      }),
+      Route(HttpMethod.get, '/users/{id:^[A-Z]+\$}/logout', handler: (request) {
+        return 'Logout a user but his/her id should contain only capital letters';
+      }),
+      Route(
+        HttpMethod.get,
+        '/users/{id:^[A-Z0-9a-z]+\$}/logout',
+        handler: (request) {
+          return 'Logout a user but his/her id may contains small, capital letters & numbers';
+        },
+      ),
     ];
 
     setUp(() {
@@ -22,20 +34,26 @@ void main() {
     });
 
     test('Should able to lookup routes by path', () {
-      expect(router.lookup('/users/1234'), routesToRegister[0]);
-      expect(router.lookup('/users/someuserid/logout'), routesToRegister[1]);
-      expect(router.lookup('/users/SOMEUSERID/logout'), routesToRegister[2]);
+      expect(router.lookup(HttpMethod.get, '/users/1234'), routesToRegister[0]);
       expect(
-        router.lookup('/users/someUserId1234/logout'),
+        router.lookup(HttpMethod.get, '/users/someuserid/logout'),
+        routesToRegister[1],
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/users/SOMEUSERID/logout'),
+        routesToRegister[2],
+      );
+      expect(
+        router.lookup(HttpMethod.get, '/users/someUserId1234/logout'),
         routesToRegister[3],
       );
     });
 
     test('Should not be able to lookup routes by path', () {
-      expect(router.lookup('random'), isNull);
-      expect(router.lookup('/random'), isNull);
-      expect(router.lookup('/random/random'), isNull);
-      expect(router.lookup('/users/someUserId1234'), isNull);
+      expect(router.lookup(HttpMethod.get, 'random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/random/random'), isNull);
+      expect(router.lookup(HttpMethod.get, '/users/someUserId1234'), isNull);
     });
   });
 }
