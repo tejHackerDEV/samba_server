@@ -5,20 +5,36 @@ void main() {
   group('RegExpParametric Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(HttpMethod.get, '/users/{id:^[0-9]+\$}', handler: (request) {
-        return 'Get user data but his/her id should contain only numbers';
+      Route(HttpMethod.get, '/users/{id:^[0-9]+\$}', handler: (
+        request,
+        response,
+      ) {
+        return response
+          ..body = 'Get user data but his/her id should contain only numbers';
       }),
-      Route(HttpMethod.get, '/users/{id:^[a-z]+\$}/logout', handler: (request) {
-        return 'Logout a user but his/her id should contain only small letters';
+      Route(HttpMethod.get, '/users/{id:^[a-z]+\$}/logout', handler: (
+        request,
+        response,
+      ) {
+        return response
+          ..body =
+              'Logout a user but his/her id should contain only small letters';
       }),
-      Route(HttpMethod.get, '/users/{id:^[A-Z]+\$}/logout', handler: (request) {
-        return 'Logout a user but his/her id should contain only capital letters';
+      Route(HttpMethod.get, '/users/{id:^[A-Z]+\$}/logout', handler: (
+        request,
+        response,
+      ) {
+        return response
+          ..body =
+              'Logout a user but his/her id should contain only capital letters';
       }),
       Route(
         HttpMethod.get,
         '/users/{id:^[A-Z0-9a-z]+\$}/logout',
-        handler: (request) {
-          return 'Logout a user but his/her id may contains small, capital letters & numbers';
+        handler: (request, response) {
+          return response
+            ..body =
+                'Logout a user but his/her id may contains small, capital letters & numbers';
         },
       ),
     ];

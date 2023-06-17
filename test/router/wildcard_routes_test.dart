@@ -8,12 +8,14 @@ void main() {
       Route(
         HttpMethod.get,
         '/profiles/{id:^[0-9]+\$}/*',
-        handler: (request) {
-          return 'Get a profile but his/her id should contain only numbers';
+        handler: (request, response) {
+          return response
+            ..body = 'Get a profile but his/her id should contain only numbers';
         },
       ),
-      Route(HttpMethod.get, '/profiles/{id}/*', handler: (request) {
-        return 'Handle any get routes that goes after the profileId';
+      Route(HttpMethod.get, '/profiles/{id}/*', handler: (request, response) {
+        return response
+          ..body = 'Handle any get routes that goes after the profileId';
       }),
     ];
 

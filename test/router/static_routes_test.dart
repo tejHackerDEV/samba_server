@@ -5,14 +5,14 @@ void main() {
   group('Static Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(HttpMethod.get, '/users', handler: (request) {
-        return 'Get users data';
+      Route(HttpMethod.get, '/users', handler: (request, response) {
+        return response..body = 'Get users data';
       }),
-      Route(HttpMethod.get, '/users/id', handler: (request) {
-        return 'Get user data who\'s id is id';
+      Route(HttpMethod.get, '/users/id', handler: (request, response) {
+        return response..body = 'Get user data who\'s id is id';
       }),
-      Route(HttpMethod.get, '/profiles', handler: (request) {
-        return 'Get profiles data';
+      Route(HttpMethod.get, '/profiles', handler: (request, response) {
+        return response..body = 'Get profiles data';
       }),
     ];
 

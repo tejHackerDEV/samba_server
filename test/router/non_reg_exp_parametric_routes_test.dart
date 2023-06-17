@@ -5,14 +5,14 @@ void main() {
   group('NonRegExpParametric Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(HttpMethod.get, '/users/{id}', handler: (request) {
-        return 'Get user data';
+      Route(HttpMethod.get, '/users/{id}', handler: (request, response) {
+        return response..body = 'Get user data';
       }),
-      Route(HttpMethod.get, '/users/{id}/logout', handler: (request) {
-        return 'Logout user';
+      Route(HttpMethod.get, '/users/{id}/logout', handler: (request, response) {
+        return response..body = 'Logout user';
       }),
-      Route(HttpMethod.get, '/profiles/{id}', handler: (request) {
-        return 'Get profile data';
+      Route(HttpMethod.get, '/profiles/{id}', handler: (request, response) {
+        return response..body = 'Get profile data';
       }),
     ];
 

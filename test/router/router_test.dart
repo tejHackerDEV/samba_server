@@ -5,36 +5,40 @@ void main() {
   group('Router tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(HttpMethod.get, '/users', handler: (request) {
-        return 'Get users data';
+      Route(HttpMethod.get, '/users', handler: (request, response) {
+        return response..body = 'Get users data';
       }),
-      Route(HttpMethod.get, '/users/id', handler: (request) {
-        return 'Get user data who\'s id is id';
+      Route(HttpMethod.get, '/users/id', handler: (request, response) {
+        return response..body = 'Get user data who\'s id is id';
       }),
-      Route(HttpMethod.get, '/users/{id}', handler: (request) {
-        return 'Get a user data';
+      Route(HttpMethod.get, '/users/{id}', handler: (request, response) {
+        return response..body = 'Get a user data';
       }),
       Route(
         HttpMethod.get,
         '/users/{id:^[0-9]+\$}/logout',
-        handler: (request) {
-          return 'Logout a user but his/her id should contain only numbers';
+        handler: (request, response) {
+          return response
+            ..body = 'Logout a user but his/her id should contain only numbers';
         },
       ),
-      Route(HttpMethod.get, '/profiles', handler: (request) {
-        return 'Get profiles data';
+      Route(HttpMethod.get, '/profiles', handler: (request, response) {
+        return response..body = 'Get profiles data';
       }),
-      Route(HttpMethod.get, '/profiles/{id}', handler: (request) {
-        return 'Get a profile data';
+      Route(HttpMethod.get, '/profiles/{id}', handler: (request, response) {
+        return response..body = 'Get a profile data';
       }),
-      Route(HttpMethod.get, '/profiles/{id}/*', handler: (request) {
-        return 'Handle any get routes that goes after the profileId';
+      Route(HttpMethod.get, '/profiles/{id}/*', handler: (request, response) {
+        return response
+          ..body = 'Handle any get routes that goes after the profileId';
       }),
       Route(
         HttpMethod.get,
         '/profiles/{id:^[0-9]+\$}/*',
-        handler: (request) {
-          return 'Get a profile but his/her id should contain only numbers';
+        handler: (request, response) {
+          return Response.ok(
+            body: 'Get a profile but his/her id should contain only numbers',
+          );
         },
       ),
     ];
@@ -84,29 +88,32 @@ void main() {
       final wildcardRoute = Route(
         HttpMethod.get,
         '/priority/*',
-        handler: (request) {
-          return 'Handle any get routes that goes after the priority';
+        handler: (request, response) {
+          return response
+            ..body = 'Handle any get routes that goes after the priority';
         },
       );
       final nonRegExpParametricRoute = Route(
         HttpMethod.get,
         '/priority/{id}',
-        handler: (request) {
-          return 'Get a priority data';
+        handler: (request, response) {
+          return response..body = 'Get a priority data';
         },
       );
       final regExpParametricRoute = Route(
         HttpMethod.get,
         '/priority/{id:^[0-9]+\$}',
-        handler: (request) {
-          return 'Get a priority data but its id should contain only numbers';
+        handler: (request, response) {
+          return response
+            ..body =
+                'Get a priority data but its id should contain only numbers';
         },
       );
       final staticRoute = Route(
         HttpMethod.get,
         '/priority/id',
-        handler: (request) {
-          return 'Get priority data who\'s id is id';
+        handler: (request, response) {
+          return response..body = 'Get priority data who\'s id is id';
         },
       );
       router

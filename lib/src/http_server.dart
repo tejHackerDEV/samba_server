@@ -1,7 +1,10 @@
 import 'dart:io' as io;
 
+import 'helpers/index.dart';
 import 'request.dart';
+import 'response.dart';
 import 'router/index.dart';
+import 'utils/headers.dart';
 
 class HttpServer with RouterMixin {
   /// Holds the underlying [io.HttpServer] instance.
@@ -41,25 +44,65 @@ class HttpServer with RouterMixin {
   void _listerForIncomingRequests() {
     _assertServerRunning();
     _ioHttpServer!.listen((ioHttpRequest) async {
+      final ioHttpResponse = ioHttpRequest.response;
       final request = Request(ioHttpRequest);
+      Response response;
+      switch (request.httpMethod) {
+        case HttpMethod.get:
+        case HttpMethod.put:
+        case HttpMethod.patch:
+        case HttpMethod.delete:
+          response = Response.ok();
+          break;
+        case HttpMethod.post:
+          response = Response.created();
+          break;
+      }
       try {
         final route = lookupRoute(request.httpMethod, request.uri.path);
         if (route == null) {
           // set statusCode as 404 because route not registered
-          ioHttpRequest.response.statusCode = io.HttpStatus.notFound;
+          ioHttpResponse.statusCode = io.HttpStatus.notFound;
         } else {
-          // route found so invoke it.
-          final responseToSend = await route.handler(request);
-          if (responseToSend != null) {
-            ioHttpRequest.response.write(responseToSend);
+          // route found so invoke the handler.
+          response = await route.handler(request, response);
+          ioHttpResponse.statusCode = response.statusCode;
+          response.headers.forEach((key, value) {
+            ioHttpResponse.headers.set(key, value);
+          });
+          /**
+           * Only write the body, if the statusCode is not equal `noContent`.
+           * If its equal then don't write any body & set `content-length` as 0.
+           * If we failed to do so, then we get below error.
+           *
+           * stackTrace
+           * ```
+           * Unhandled exception:
+           * HttpException: Content size exceeds specified contentLength.
+           * ```
+           */
+          if (response.statusCode == io.HttpStatus.noContent) {
+            ioHttpResponse.headers.add(Headers.kContentLength, 0);
+          } else {
+            /**
+             * After writing the body don't add or tamper anything
+             * because if we failed to do so then we will
+             * end up triggering an exception.
+             *
+             * stackTrace
+             * ```
+             * Bad state: Header already sent
+             * ```
+             */
+            ioHttpResponse.write(response.body);
           }
         }
       } on UnsupportedError catch (error) {
-        ioHttpRequest.response.statusCode = io.HttpStatus.methodNotAllowed;
-        ioHttpRequest.response.write(error);
+        ioHttpResponse.statusCode = io.HttpStatus.methodNotAllowed;
+        ioHttpResponse.write(error);
       }
       // need to close response to send it back to the client
-      return ioHttpRequest.response.close();
+      return ioHttpResponse.close();
     });
   }
 

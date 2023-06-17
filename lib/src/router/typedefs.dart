@@ -1,5 +1,9 @@
 import 'dart:async';
 
 import '../request.dart';
+import '../response.dart';
 
-typedef RouteHandler = FutureOr<Object?> Function(Request request);
+typedef RouteHandler = FutureOr<Response> Function(
+  Request request,
+  Response response,
+);
