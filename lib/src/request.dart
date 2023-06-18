@@ -2,7 +2,7 @@ import 'dart:io' as io;
 
 import 'package:samba_server/src/extensions/io_http_request_extension.dart';
 
-import 'helpers/index.dart';
+import 'helpers/enums/index.dart';
 
 class Request {
   final io.HttpRequest ioHttpRequest;

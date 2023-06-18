@@ -1,4 +1,4 @@
-import '../helpers/index.dart';
+import '../helpers/enums/index.dart';
 import 'typedefs.dart';
 
 class Route {

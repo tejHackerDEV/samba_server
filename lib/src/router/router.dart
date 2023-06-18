@@ -1,6 +1,6 @@
 import 'package:samba_server/src/extensions/iterable_extension.dart';
 
-import '../helpers/index.dart';
+import '../helpers/enums/index.dart';
 import 'constants.dart';
 import 'nodes/node.dart';
 import 'nodes/predictable_nodes/parametric_node.dart';

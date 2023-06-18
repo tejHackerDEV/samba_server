@@ -1,6 +1,6 @@
 import 'dart:io' as io;
 
-import 'helpers/index.dart';
+import 'helpers/enums/index.dart';
 import 'request.dart';
 import 'response.dart';
 import 'router/index.dart';

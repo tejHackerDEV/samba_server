@@ -2,7 +2,7 @@ import 'dart:io' as io;
 
 import 'package:samba_server/src/extensions/iterable_extension.dart';
 
-import '../helpers/index.dart';
+import '../helpers/enums/index.dart';
 
 extension IOHttpRequestExtension on io.HttpRequest {
   /// Extracts the headers in the key value format.
