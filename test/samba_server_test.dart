@@ -2,6 +2,8 @@ import 'package:http/http.dart' as http;
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import 'helpers/route_builder.dart';
+
 void main() {
   const address = '127.0.0.1';
   const port = 8080;
@@ -34,13 +36,15 @@ void main() {
 
     setUpAll(() => httpServer.bind(address: address, port: port));
 
+    tearDownAll(() => httpServer.shutdown());
+
     test('Server should listen to incoming requests', () async {
       Response responseToGet = Response.ok(body: 'Hello from SAMBA_SERVER');
       httpServer.registerRoute(
-        Route(
+        RouteBuilder(
           HttpMethod.get,
           httpServer.uri.path,
-          handler: (_, __) => responseToGet,
+          routeHandler: (_) => responseToGet,
         ),
       );
       http.Response response = await http.get(httpServer.uri);
@@ -52,10 +56,10 @@ void main() {
 
       responseToGet = Response.created(body: 'Created by SAMBA_SERVER');
       httpServer.registerRoute(
-        Route(
+        RouteBuilder(
           HttpMethod.post,
           httpServer.uri.path,
-          handler: (_, __) => responseToGet,
+          routeHandler: (_) => responseToGet,
         ),
       );
       response = await http.post(httpServer.uri);
@@ -64,10 +68,10 @@ void main() {
 
       responseToGet = Response.ok(body: 'Put by SAMBA_SERVER');
       httpServer.registerRoute(
-        Route(
+        RouteBuilder(
           HttpMethod.put,
           httpServer.uri.path,
-          handler: (_, __) => responseToGet,
+          routeHandler: (_) => responseToGet,
         ),
       );
       response = await http.put(httpServer.uri);
@@ -76,10 +80,10 @@ void main() {
 
       responseToGet = Response.ok(body: 'Patched by SAMBA_SERVER');
       httpServer.registerRoute(
-        Route(
+        RouteBuilder(
           HttpMethod.patch,
           httpServer.uri.path,
-          handler: (_, __) => responseToGet,
+          routeHandler: (_) => responseToGet,
         ),
       );
       response = await http.patch(httpServer.uri);
@@ -88,10 +92,10 @@ void main() {
 
       responseToGet = Response.ok(body: 'Deleted by SAMBA_SERVER');
       httpServer.registerRoute(
-        Route(
+        RouteBuilder(
           HttpMethod.delete,
           httpServer.uri.path,
-          handler: (_, __) => responseToGet,
+          routeHandler: (_) => responseToGet,
         ),
       );
       response = await http.delete(httpServer.uri);
@@ -100,10 +104,10 @@ void main() {
 
       responseToGet = Response.noContent();
       httpServer.registerRoute(
-        Route(
+        RouteBuilder(
           HttpMethod.get,
           '${httpServer.uri.path}/no-content',
-          handler: (_, __) => responseToGet,
+          routeHandler: (_) => responseToGet,
         ),
       );
       response = await http.get(Uri.parse('http://$address:$port/no-content'));
@@ -119,10 +123,10 @@ void main() {
         body: 'I wont be included in the body',
       );
       httpServer.registerRoute(
-        Route(
+        RouteBuilder(
           HttpMethod.put,
           '${httpServer.uri.path}/no-content',
-          handler: (_, __) => responseToGet,
+          routeHandler: (_) => responseToGet,
         ),
       );
       final response = await http.put(
@@ -131,7 +135,5 @@ void main() {
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, isEmpty);
     });
-
-    tearDownAll(() => httpServer.shutdown());
   });
 }

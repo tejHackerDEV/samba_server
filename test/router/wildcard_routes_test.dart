@@ -1,21 +1,25 @@
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import '../helpers/route_builder.dart';
+
 void main() {
   group('Wildcard Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(
+      RouteBuilder(
         HttpMethod.get,
         '/profiles/{id:^[0-9]+\$}/*',
-        handler: (request, response) {
-          return response
-            ..body = 'Get a profile but his/her id should contain only numbers';
+        routeHandler: (_) {
+          return Response.ok(
+            body: 'Get a profile but his/her id should contain only numbers',
+          );
         },
       ),
-      Route(HttpMethod.get, '/profiles/{id}/*', handler: (request, response) {
-        return response
-          ..body = 'Handle any get routes that goes after the profileId';
+      RouteBuilder(HttpMethod.get, '/profiles/{id}/*', routeHandler: (_) {
+        return Response.ok(
+          body: 'Handle any get routes that goes after the profileId',
+        );
       }),
     ];
 

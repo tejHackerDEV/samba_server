@@ -1,18 +1,20 @@
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import '../helpers/route_builder.dart';
+
 void main() {
   group('NonRegExpParametric Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(HttpMethod.get, '/users/{id}', handler: (request, response) {
-        return response..body = 'Get user data';
+      RouteBuilder(HttpMethod.get, '/users/{id}', routeHandler: (_) {
+        return Response.ok(body: 'Get user data');
       }),
-      Route(HttpMethod.get, '/users/{id}/logout', handler: (request, response) {
-        return response..body = 'Logout user';
+      RouteBuilder(HttpMethod.get, '/users/{id}/logout', routeHandler: (_) {
+        return Response.ok(body: 'Logout user');
       }),
-      Route(HttpMethod.get, '/profiles/{id}', handler: (request, response) {
-        return response..body = 'Get profile data';
+      RouteBuilder(HttpMethod.get, '/profiles/{id}', routeHandler: (_) {
+        return Response.ok(body: 'Get profile data');
       }),
     ];
 

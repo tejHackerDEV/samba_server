@@ -1,35 +1,22 @@
-import '../helpers/enums/index.dart';
-import 'typedefs.dart';
+import 'dart:async';
 
-class Route {
+import '../helpers/enums/index.dart';
+import '../interceptor/index.dart';
+import '../request.dart';
+import '../response.dart';
+
+abstract class Route {
   final HttpMethod httpMethod;
   final String path;
-  final RouteHandler handler;
 
-  Route(
-    this.httpMethod,
-    this.path, {
-    required this.handler,
-  });
+  const Route(this.httpMethod, this.path);
+
+  FutureOr<Response> handler(Request request);
+
+  Iterable<Interceptor>? interceptors(Request request) => null;
 
   @override
   String toString() => path;
-
-  /// Returns a new instance of [Route] with new properties passed.
-  ///
-  /// <br>
-  /// If no properties passed then a new deep clone will be created
-  /// on which the operation is performed.
-  Route copyWith({
-    HttpMethod? httpMethod,
-    String? path,
-    RouteHandler? handler,
-  }) =>
-      Route(
-        httpMethod ?? this.httpMethod,
-        path ?? this.path,
-        handler: handler ?? this.handler,
-      );
 
   @override
   bool operator ==(Object other) =>

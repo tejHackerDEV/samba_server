@@ -1,41 +1,45 @@
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import '../helpers/route_builder.dart';
+
 void main() {
   group('Router tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(HttpMethod.get, '/users', handler: (request, response) {
-        return response..body = 'Get users data';
+      RouteBuilder(HttpMethod.get, '/users', routeHandler: (_) {
+        return Response.ok(body: 'Get users data');
       }),
-      Route(HttpMethod.get, '/users/id', handler: (request, response) {
-        return response..body = 'Get user data who\'s id is id';
+      RouteBuilder(HttpMethod.get, '/users/id', routeHandler: (_) {
+        return Response.ok(body: 'Get user data who\'s id is id');
       }),
-      Route(HttpMethod.get, '/users/{id}', handler: (request, response) {
-        return response..body = 'Get a user data';
+      RouteBuilder(HttpMethod.get, '/users/{id}', routeHandler: (_) {
+        return Response.ok(body: 'Get a user data');
       }),
-      Route(
+      RouteBuilder(
         HttpMethod.get,
         '/users/{id:^[0-9]+\$}/logout',
-        handler: (request, response) {
-          return response
-            ..body = 'Logout a user but his/her id should contain only numbers';
+        routeHandler: (_) {
+          return Response.ok(
+            body: 'Logout a user but his/her id should contain only numbers',
+          );
         },
       ),
-      Route(HttpMethod.get, '/profiles', handler: (request, response) {
-        return response..body = 'Get profiles data';
+      RouteBuilder(HttpMethod.get, '/profiles', routeHandler: (_) {
+        return Response.ok(body: 'Get profiles data');
       }),
-      Route(HttpMethod.get, '/profiles/{id}', handler: (request, response) {
-        return response..body = 'Get a profile data';
+      RouteBuilder(HttpMethod.get, '/profiles/{id}', routeHandler: (_) {
+        return Response.ok(body: 'Get a profile data');
       }),
-      Route(HttpMethod.get, '/profiles/{id}/*', handler: (request, response) {
-        return response
-          ..body = 'Handle any get routes that goes after the profileId';
+      RouteBuilder(HttpMethod.get, '/profiles/{id}/*', routeHandler: (_) {
+        return Response.ok(
+          body: 'Handle any get routes that goes after the profileId',
+        );
       }),
-      Route(
+      RouteBuilder(
         HttpMethod.get,
         '/profiles/{id:^[0-9]+\$}/*',
-        handler: (request, response) {
+        routeHandler: (_) {
           return Response.ok(
             body: 'Get a profile but his/her id should contain only numbers',
           );
@@ -85,35 +89,36 @@ void main() {
     });
 
     test('Should able to lookup routes based on their priority order', () {
-      final wildcardRoute = Route(
+      final wildcardRoute = RouteBuilder(
         HttpMethod.get,
         '/priority/*',
-        handler: (request, response) {
-          return response
-            ..body = 'Handle any get routes that goes after the priority';
+        routeHandler: (_) {
+          return Response.ok(
+            body: 'Handle any get routes that goes after the priority',
+          );
         },
       );
-      final nonRegExpParametricRoute = Route(
+      final nonRegExpParametricRoute = RouteBuilder(
         HttpMethod.get,
         '/priority/{id}',
-        handler: (request, response) {
-          return response..body = 'Get a priority data';
+        routeHandler: (_) {
+          return Response.ok(body: 'Get a priority data');
         },
       );
-      final regExpParametricRoute = Route(
+      final regExpParametricRoute = RouteBuilder(
         HttpMethod.get,
         '/priority/{id:^[0-9]+\$}',
-        handler: (request, response) {
-          return response
-            ..body =
-                'Get a priority data but its id should contain only numbers';
+        routeHandler: (_) {
+          return Response.ok(
+            body: 'Get a priority data but its id should contain only numbers',
+          );
         },
       );
-      final staticRoute = Route(
+      final staticRoute = RouteBuilder(
         HttpMethod.get,
         '/priority/id',
-        handler: (request, response) {
-          return response..body = 'Get priority data who\'s id is id';
+        routeHandler: (_) {
+          return Response.ok(body: 'Get priority data who\'s id is id');
         },
       );
       router

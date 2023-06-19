@@ -1,18 +1,20 @@
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import '../helpers/route_builder.dart';
+
 void main() {
   group('Static Routes tests', () {
     final router = Router();
     final routesToRegister = [
-      Route(HttpMethod.get, '/users', handler: (request, response) {
-        return response..body = 'Get users data';
+      RouteBuilder(HttpMethod.get, '/users', routeHandler: (_) {
+        return Response.ok(body: 'Get users data');
       }),
-      Route(HttpMethod.get, '/users/id', handler: (request, response) {
-        return response..body = 'Get user data who\'s id is id';
+      RouteBuilder(HttpMethod.get, '/users/id', routeHandler: (_) {
+        return Response.ok(body: 'Get user data who\'s id is id');
       }),
-      Route(HttpMethod.get, '/profiles', handler: (request, response) {
-        return response..body = 'Get profiles data';
+      RouteBuilder(HttpMethod.get, '/profiles', routeHandler: (_) {
+        return Response.ok(body: 'Get profiles data');
       }),
     ];
 
