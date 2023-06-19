@@ -40,18 +40,63 @@ class HttpServer with RouterMixin {
     assert(isRunning, 'Server is not running to perform the action');
   }
 
+  /// Sends the response back to the client based on the [response] passed.
+  ///
+  /// <br>
+  /// After calling this function no one should tamper or try to access
+  /// any request or response parameters of this particular request.
+  /// As it is useless as well as risky because response is already
+  /// passed back to the client. So this should  be the last function
+  /// that should be invoked for a particular request.
+  Future<void> _sendBackResponse({
+    required io.HttpResponse ioHttpResponse,
+    required Response response,
+  }) {
+    ioHttpResponse.statusCode = response.statusCode;
+    response.headers.forEach((key, value) {
+      ioHttpResponse.headers.set(key, value);
+    });
+    /**
+     * Only write the body, if the statusCode is not equal `noContent`.
+     * If its equal then don't write any body & set `content-length` as 0.
+     * If we failed to do so, then we get below error.
+     *
+     * stackTrace
+     * ```
+     * Unhandled exception:
+     * HttpException: Content size exceeds specified contentLength.
+     * ```
+     */
+    if (response.statusCode == io.HttpStatus.noContent) {
+      ioHttpResponse.headers.add(Headers.kContentLength, 0);
+    } else {
+      /**
+       * After writing the body don't add or tamper anything
+       * because if we failed to do so then we will
+       * end up triggering an exception.
+       *
+       * stackTrace
+       * ```
+       * Bad state: Header already sent
+       * ```
+       */
+      ioHttpResponse.write(response.body);
+    }
+    // need to close response to send it back to the client
+    return ioHttpResponse.close();
+  }
+
   /// Starts listening for incoming requests
   void _listerForIncomingRequests() {
     _assertServerRunning();
     _ioHttpServer!.listen((ioHttpRequest) async {
-      final ioHttpResponse = ioHttpRequest.response;
       final request = Request(ioHttpRequest);
       Response? response;
       try {
         final route = lookupRoute(request.httpMethod, request.uri.path);
         if (route == null) {
           // set statusCode as 404 because route not registered
-          ioHttpResponse.statusCode = io.HttpStatus.notFound;
+          response = Response.notFound();
         } else {
           // route found so invoke the interceptors & handler.
           final invokedInterceptors = <Interceptor>[];
@@ -79,43 +124,14 @@ class HttpServer with RouterMixin {
                   response!,
                 );
           }
-          ioHttpResponse.statusCode = response!.statusCode;
-          response.headers.forEach((key, value) {
-            ioHttpResponse.headers.set(key, value);
-          });
-          /**
-           * Only write the body, if the statusCode is not equal `noContent`.
-           * If its equal then don't write any body & set `content-length` as 0.
-           * If we failed to do so, then we get below error.
-           *
-           * stackTrace
-           * ```
-           * Unhandled exception:
-           * HttpException: Content size exceeds specified contentLength.
-           * ```
-           */
-          if (response.statusCode == io.HttpStatus.noContent) {
-            ioHttpResponse.headers.add(Headers.kContentLength, 0);
-          } else {
-            /**
-             * After writing the body don't add or tamper anything
-             * because if we failed to do so then we will
-             * end up triggering an exception.
-             *
-             * stackTrace
-             * ```
-             * Bad state: Header already sent
-             * ```
-             */
-            ioHttpResponse.write(response.body);
-          }
         }
       } on UnsupportedError catch (error) {
-        ioHttpResponse.statusCode = io.HttpStatus.methodNotAllowed;
-        ioHttpResponse.write(error);
+        response = Response.methodNotAllowed(body: error);
       }
-      // need to close response to send it back to the client
-      return ioHttpResponse.close();
+      return _sendBackResponse(
+        ioHttpResponse: ioHttpRequest.response,
+        response: response!,
+      );
     });
   }
 
