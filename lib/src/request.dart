@@ -13,10 +13,21 @@ class Request {
   /// Headers that are passed in the request as key value paris.
   final Map<String, String> headers;
 
-  const Request._(
+  /// Body that has been passed in the request.
+  ///
+  /// <br>
+  /// This will be a [Stream<List<int>>] by default unless
+  /// converted by any `Interceptor` or `Route`.
+  ///
+  /// So before performing anything on this first check whether
+  /// it is still a `Stream<Uint8List>` type or not.
+  Object? body;
+
+  Request._(
     this.ioHttpRequest,
     this.httpMethod,
     this.headers,
+    this.body,
   );
 
   factory Request(io.HttpRequest ioHttpRequest) {
@@ -31,6 +42,7 @@ class Request {
       ioHttpRequest,
       httpMethod,
       ioHttpRequest.extractHeaders(),
+      ioHttpRequest,
     );
   }
 
@@ -39,4 +51,6 @@ class Request {
   /// This provides access to the
   /// path and query string for the request.
   Uri get uri => ioHttpRequest.uri;
+
+  io.ContentType? get contentType => ioHttpRequest.headers.contentType;
 }

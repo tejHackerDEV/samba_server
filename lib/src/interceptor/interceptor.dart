@@ -13,6 +13,8 @@ import '../response.dart';
 /// If it returns something other than `null` will make other
 /// [Interceptor]'s as well as the `RouteHandler` not to be executed.
 abstract class Interceptor {
+  const Interceptor();
+
   /// Will get invoked when an interceptor came into execution scope.
   FutureOr<Response?> onInit(Request request) => null;
 
