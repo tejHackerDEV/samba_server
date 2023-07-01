@@ -19,9 +19,9 @@ void main() {
 
   final httpServer = HttpServer();
 
-  setUpAll(() => httpServer.bind(address: address, port: port));
+  setUp(() async => await httpServer.bind(address: address, port: port));
 
-  tearDownAll(() => httpServer.shutdown());
+  tearDown(() async => await httpServer.shutdown());
 
   group('StringRequestDecoder tests', () {
     test('Should able to decode body of `text/*` requests', () async {

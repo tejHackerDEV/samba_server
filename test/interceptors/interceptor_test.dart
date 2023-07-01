@@ -13,9 +13,9 @@ void main() {
 
   final httpServer = HttpServer();
 
-  setUpAll(() => httpServer.bind(address: address, port: port));
+  setUp(() async => await httpServer.bind(address: address, port: port));
 
-  tearDownAll(() => httpServer.shutdown());
+  tearDown(() async => await httpServer.shutdown());
 
   group('Interceptor `onInit` group tests', () {
     test('Should call single interceptor `onInit` before handling route',

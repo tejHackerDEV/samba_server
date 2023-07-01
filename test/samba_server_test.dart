@@ -12,10 +12,8 @@ void main() {
 
   group('Server start & stop tests', () {
     final httpServer = HttpServer();
-
-    setUpAll(() => httpServer.bind(address: address, port: port));
-
     test('Server should be up & running', () async {
+      await httpServer.bind(address: address, port: port);
       expect(httpServer.isRunning, isTrue);
     });
 
@@ -36,9 +34,9 @@ void main() {
   group('Incoming requests tests', () {
     final httpServer = HttpServer();
 
-    setUpAll(() => httpServer.bind(address: address, port: port));
+    setUp(() async => await httpServer.bind(address: address, port: port));
 
-    tearDownAll(() => httpServer.shutdown());
+    tearDown(() async => await httpServer.shutdown());
 
     test('Server should listen to incoming requests', () async {
       Response responseToGet = Response.ok(body: 'Hello from SAMBA_SERVER');
