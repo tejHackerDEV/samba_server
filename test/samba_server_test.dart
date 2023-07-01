@@ -1,12 +1,14 @@
-import 'package:http/http.dart' as http;
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import 'helpers/http_client.dart' as http_client;
 import 'helpers/route_builder.dart';
 
 void main() {
   const address = '127.0.0.1';
   const port = 8080;
+
+  final httpClient = http_client.HttpClient(address: address, port: port);
 
   group('Server start & stop tests', () {
     final httpServer = HttpServer();
@@ -47,11 +49,12 @@ void main() {
           routeHandler: (_) => responseToGet,
         ),
       );
-      http.Response response = await http.get(httpServer.uri);
+      http_client.HttpResponse response =
+          await httpClient.get(httpServer.uri.path);
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
 
-      response = await http.get(Uri.parse('${httpServer.uri}/random'));
+      response = await httpClient.get('${httpServer.uri.path}/random');
       expect(response.statusCode, 404);
 
       responseToGet = Response.created(body: 'Created by SAMBA_SERVER');
@@ -62,7 +65,7 @@ void main() {
           routeHandler: (_) => responseToGet,
         ),
       );
-      response = await http.post(httpServer.uri);
+      response = await httpClient.post(httpServer.uri.path);
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
 
@@ -74,7 +77,7 @@ void main() {
           routeHandler: (_) => responseToGet,
         ),
       );
-      response = await http.put(httpServer.uri);
+      response = await httpClient.put(httpServer.uri.path);
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
 
@@ -86,7 +89,7 @@ void main() {
           routeHandler: (_) => responseToGet,
         ),
       );
-      response = await http.patch(httpServer.uri);
+      response = await httpClient.patch(httpServer.uri.path);
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
 
@@ -98,7 +101,7 @@ void main() {
           routeHandler: (_) => responseToGet,
         ),
       );
-      response = await http.delete(httpServer.uri);
+      response = await httpClient.delete(httpServer.uri.path);
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
 
@@ -110,9 +113,9 @@ void main() {
           routeHandler: (_) => responseToGet,
         ),
       );
-      response = await http.get(Uri.parse('http://$address:$port/no-content'));
+      response = await httpClient.get('${httpServer.uri.path}/no-content');
       expect(response.statusCode, responseToGet.statusCode);
-      expect(response.body, isEmpty);
+      expect(response.body, isNull);
     });
 
     test(
@@ -129,11 +132,10 @@ void main() {
           routeHandler: (_) => responseToGet,
         ),
       );
-      final response = await http.put(
-        Uri.parse('http://$address:$port/no-content'),
-      );
+      final response =
+          await httpClient.put('${httpServer.uri.path}/no-content');
       expect(response.statusCode, responseToGet.statusCode);
-      expect(response.body, isEmpty);
+      expect(response.body, isNull);
     });
   });
 }

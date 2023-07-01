@@ -1,20 +1,16 @@
 import 'dart:io' as io;
 
-import 'package:dio/dio.dart' as http_client;
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import '../helpers/http_client.dart' as http_client;
 import '../helpers/route_builder.dart';
 
 void main() {
   const address = '127.0.0.1';
   const port = 8080;
 
-  final dio = http_client.Dio(
-    http_client.BaseOptions(
-      baseUrl: 'http://$address:$port',
-    ),
-  );
+  final httpClient = http_client.HttpClient(address: address, port: port);
 
   final applicationJson = 'application/json';
   final formUrlencoded = 'application/x-www-form-urlencoded';
@@ -41,16 +37,16 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(contentType: plainText),
+        headers: {'content-type': plainText},
         data: body,
       );
 
       body = 'class App {}';
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(contentType: 'text/dart'),
+        headers: {'content-type': 'text/dart'},
         data: body,
       );
     });
@@ -68,11 +64,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': applicationJson},
-        ),
+        headers: {'content-type': applicationJson},
         data: body,
       );
     });
@@ -97,11 +91,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': formUrlencoded},
-        ),
+        headers: {'content-type': formUrlencoded},
         data: body,
       );
     });
@@ -120,11 +112,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': plainText},
-        ),
+        headers: {'content-type': plainText},
         data: body,
       );
     });
@@ -150,11 +140,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': applicationJson},
-        ),
+        headers: {'content-type': applicationJson},
         data: body,
       );
     });
@@ -173,11 +161,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': formUrlencoded},
-        ),
+        headers: {'content-type': formUrlencoded},
         data: body,
       );
     });
@@ -216,11 +202,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': multipartFormData},
-        ),
+        headers: {'content-type': multipartFormData},
         data: http_client.FormData.fromMap(body),
       );
     });
@@ -249,11 +233,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': multipartFormData},
-        ),
+        headers: {'content-type': multipartFormData},
         data: http_client.FormData.fromMap({
           'file': http_client.MultipartFile.fromFileSync(
             file.path,
@@ -289,11 +271,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': multipartFormData},
-        ),
+        headers: {'content-type': multipartFormData},
         data: http_client.FormData.fromMap({
           'file': http_client.MultipartFile.fromFileSync(
             file.path,
@@ -341,11 +321,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': multipartFormData},
-        ),
+        headers: {'content-type': multipartFormData},
         data: http_client.FormData.fromMap({
           ...body,
           'files': List.generate(files.length, (index) {
@@ -375,11 +353,9 @@ void main() {
           },
         ),
       );
-      await dio.post(
+      await httpClient.post(
         httpServer.uri.path,
-        options: http_client.Options(
-          headers: {'content-type': applicationJson},
-        ),
+        headers: {'content-type': applicationJson},
         data: body,
       );
     });

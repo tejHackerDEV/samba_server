@@ -1,13 +1,15 @@
-import 'package:http/http.dart' as http;
 import 'package:samba_server/samba_server.dart';
 import 'package:test/test.dart';
 
+import '../helpers/http_client.dart' as http_client;
 import '../helpers/interceptor_builder.dart';
 import '../helpers/route_builder.dart';
 
 void main() {
   const address = '127.0.0.1';
   const port = 8080;
+
+  final httpClient = http_client.HttpClient(address: address, port: port);
 
   final httpServer = HttpServer();
 
@@ -37,8 +39,8 @@ void main() {
           },
         ),
       );
-      final response = await http.post(
-        Uri.parse('http://$address:$port/on-init-interceptor'),
+      final response = await httpClient.post(
+        '${httpServer.uri.path}/on-init-interceptor',
       );
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
@@ -80,8 +82,8 @@ void main() {
           },
         ),
       );
-      final response = await http.post(
-        Uri.parse('http://$address:$port/multi-on-init-interceptor'),
+      final response = await httpClient.post(
+        '${httpServer.uri.path}/multi-on-init-interceptor',
       );
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
@@ -108,8 +110,8 @@ void main() {
           },
         ),
       );
-      final response = await http.post(
-        Uri.parse('http://$address:$port/should-not-handle-route-on-init'),
+      final response = await httpClient.post(
+        '${httpServer.uri.path}/should-not-handle-route-on-init',
       );
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
@@ -141,8 +143,8 @@ void main() {
           },
         ),
       );
-      final response = await http.post(
-        Uri.parse('http://$address:$port/on-dispose-interceptor'),
+      final response = await httpClient.post(
+        '${httpServer.uri.path}/on-dispose-interceptor',
       );
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
@@ -195,8 +197,8 @@ void main() {
           },
         ),
       );
-      final response = await http.post(
-        Uri.parse('http://$address:$port/multi-on-dispose-interceptor'),
+      final response = await httpClient.post(
+        '${httpServer.uri.path}/multi-on-dispose-interceptor',
       );
       expect(response.statusCode, responseFrom1stInterceptor.statusCode);
       expect(response.body, responseFrom1stInterceptor.body);
@@ -233,8 +235,8 @@ void main() {
           },
         ),
       );
-      final response = await http.post(
-        Uri.parse('http://$address:$port/should-not-handle-route-on-dispose'),
+      final response = await httpClient.post(
+        '${httpServer.uri.path}/should-not-handle-route-on-dispose',
       );
       expect(response.statusCode, responseToGet.statusCode);
       expect(response.body, responseToGet.body);
@@ -292,10 +294,8 @@ void main() {
           },
         ),
       );
-      final response = await http.post(
-        Uri.parse(
-          'http://$address:$port/should-not-handle-route-multiple-on-dispose',
-        ),
+      final response = await httpClient.post(
+        '${httpServer.uri.path}/should-not-handle-route-multiple-on-dispose',
       );
       expect(response.statusCode, responseFrom1stInterceptor.statusCode);
       expect(response.body, responseFrom1stInterceptor.body);
