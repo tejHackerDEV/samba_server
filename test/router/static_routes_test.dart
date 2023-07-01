@@ -30,7 +30,9 @@ void main() {
 
     test('Should able to lookup routes by path', () {
       for (final route in routesToRegister) {
-        expect(router.lookup(HttpMethod.get, route.path), route);
+        final lookupResult = router.lookup(HttpMethod.get, route.path);
+        expect(lookupResult?.pathParameters, isEmpty);
+        expect(lookupResult?.route, route);
       }
     });
 

@@ -34,14 +34,25 @@ void main() {
     });
 
     test('Should able to lookup routes by path', () {
-      expect(
-        router.lookup(HttpMethod.get, '/profiles/1234/anotherRandom'),
-        routesToRegister[0],
+      LookupResult? lookupResult = router.lookup(
+        HttpMethod.get,
+        '/profiles/1234/anotherRandom',
       );
-      expect(
-        router.lookup(HttpMethod.get, '/profiles/random/anotherRandom'),
-        routesToRegister[1],
+      expect(lookupResult?.pathParameters, {
+        'id': '1234',
+        '*': 'anotherRandom',
+      });
+      expect(lookupResult?.route, routesToRegister[0]);
+
+      lookupResult = router.lookup(
+        HttpMethod.get,
+        '/profiles/random/anotherRandom',
       );
+      expect(lookupResult?.pathParameters, {
+        'id': 'random',
+        '*': 'anotherRandom',
+      });
+      expect(lookupResult?.route, routesToRegister[1]);
     });
 
     test('Should not be able to lookup routes by path', () {

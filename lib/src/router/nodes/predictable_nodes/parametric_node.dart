@@ -3,6 +3,7 @@ import 'predictable_node.dart';
 abstract class ParametricNode extends PredictableNode {
   ParametricNode(
     super.pathSection, {
+    required super.key,
     super.route,
     super.staticNodes,
     super.regExpParametricNodes,
@@ -12,14 +13,22 @@ abstract class ParametricNode extends PredictableNode {
 
   /// Create appropriate node based on the [pathSection] passed
   static ParametricNode create(String pathSection) {
+    /**
+     * `pathSection` starts with `{` & ends with `}`,
+     * so take care of them while doing `substring` operations on it.
+     */
     final regExpDividerIndex = pathSection.indexOf(':');
     if (regExpDividerIndex == -1) {
       // NonRegex
-      return NonRegExpParametricNode(pathSection);
+      return NonRegExpParametricNode(
+        pathSection,
+        key: pathSection.substring(1, pathSection.length - 1),
+      );
     }
     // Regex
     return RegExpParametricNode(
       pathSection,
+      key: pathSection.substring(1, regExpDividerIndex),
       regExp: RegExp(
         pathSection.substring(
           regExpDividerIndex + 1,
@@ -35,6 +44,7 @@ class RegExpParametricNode extends ParametricNode {
 
   RegExpParametricNode(
     super.pathSection, {
+    required super.key,
     required this.regExp,
     super.route,
     super.staticNodes,
@@ -47,6 +57,7 @@ class RegExpParametricNode extends ParametricNode {
 class NonRegExpParametricNode extends ParametricNode {
   NonRegExpParametricNode(
     super.pathSection, {
+    required super.key,
     super.route,
     super.staticNodes,
     super.regExpParametricNodes,

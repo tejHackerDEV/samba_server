@@ -5,16 +5,18 @@ import 'wildcard_node.dart';
 
 abstract class Node {
   final String pathSection;
+  final String key;
   Route? route;
 
   Node(
     this.pathSection, {
+    required this.key,
     this.route,
   });
 
   /// Create appropriate node based on the [pathSection] passed
   static Node create(String pathSection) {
-    if (pathSection == '*') {
+    if (pathSection == kWildcardKey) {
       // wildcard node
       return WildcardNode(pathSection);
     }

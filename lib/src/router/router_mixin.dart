@@ -1,4 +1,5 @@
 import '../helpers/enums/index.dart';
+import 'lookup_result.dart';
 import 'route.dart';
 import 'router.dart';
 
@@ -12,7 +13,8 @@ mixin RouterMixin {
 
   /// Return a `route` registered with the [path] provided under
   /// respective [httpMethod]
-  Route? lookupRoute(HttpMethod httpMethod, String path) => _router.lookup(
+  LookupResult? lookupRoute(HttpMethod httpMethod, String path) =>
+      _router.lookup(
         httpMethod,
         path,
       );

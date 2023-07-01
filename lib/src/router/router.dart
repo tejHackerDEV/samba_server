@@ -2,6 +2,7 @@ import 'package:samba_server/src/extensions/iterable_extension.dart';
 
 import '../helpers/enums/index.dart';
 import 'constants.dart';
+import 'lookup_result.dart';
 import 'nodes/node.dart';
 import 'nodes/predictable_nodes/parametric_node.dart';
 import 'nodes/predictable_nodes/predictable_node.dart';
@@ -37,7 +38,9 @@ class Router {
   void register(Route route) {
     Node insertNodeInto(Node into, Node node) {
       PredictableNode appendNodeInto(
-          List<PredictableNode> into, PredictableNode node) {
+        List<PredictableNode> into,
+        PredictableNode node,
+      ) {
         final childNode = into.firstWhereOrNull(
           (childNode) => childNode == node,
         );
@@ -106,40 +109,40 @@ class Router {
   /// under the respected [httpMethod].
   /// <br>
   /// If no `route` is registered with [path] returns `null`.
-  Route? lookup(HttpMethod httpMethod, String path) {
+  LookupResult? lookup(HttpMethod httpMethod, String path) {
     final pathSections = _sanitizePath(path);
-    return _lookup(pathSections, _nodeMap[httpMethod] as StaticNode);
+    return _lookup(
+      pathSections,
+      _nodeMap[httpMethod] as StaticNode,
+      pathParameters: {},
+    );
   }
 
   /// Lookup for a `route` under the [currentNode]
   /// with the given [pathSections].
   /// <br>
   /// If no `route` is registered then returns `null`.
-  Route? _lookup(
+  LookupResult? _lookup(
     Iterable<String> pathSections,
     PredictableNode? currentNode, {
-    WildcardNode? previouslyMatchedWildcardNode,
+    required Map<String, String> pathParameters,
   }) {
     if (pathSections.isNotEmpty) {
       // only check for pathSections if its not empty
       PredictableNode? tempNode = currentNode;
       for (int i = 0; i < pathSections.length; ++i) {
         final pathSection = pathSections.elementAt(i);
-        // only update the previousWildCardNode if the currentNode's
-        // wildcardNode is not null
-        if (currentNode?.wildcardNode != null) {
-          previouslyMatchedWildcardNode = currentNode?.wildcardNode;
-        }
         // 1. Check under static nodes.
         tempNode = currentNode?.staticNodes?.firstWhereOrNull(
           (childNode) => childNode.pathSection == pathSection,
         );
 
-        // 2. If tempNode null then check under parametric nodes.
+        // 2. If tempNode is null then check under parametric nodes.
         if (tempNode == null) {
-          Route? lookupUnderParametricNodes(
-            Iterable<ParametricNode> parametricNodes,
-          ) {
+          LookupResult? lookupUnderParametricNodes(
+            Iterable<ParametricNode> parametricNodes, {
+            required Map<String, String> pathParameters,
+          }) {
             for (final parametricNode in parametricNodes) {
               final bool didPathSectionMatched;
               switch (parametricNode) {
@@ -155,10 +158,11 @@ class Router {
               }
 
               if (didPathSectionMatched) {
+                pathParameters[parametricNode.key] = pathSection;
                 return _lookup(
                   pathSections.skip(i + 1),
                   parametricNode,
-                  previouslyMatchedWildcardNode: previouslyMatchedWildcardNode,
+                  pathParameters: pathParameters,
                 );
               }
             }
@@ -167,43 +171,58 @@ class Router {
 
           // 1. Check under regExpNodes first
           if (currentNode?.regExpParametricNodes != null) {
-            final routeToReturn = lookupUnderParametricNodes(
+            final lookupResult = lookupUnderParametricNodes(
               currentNode!.regExpParametricNodes!,
+              pathParameters: {...pathParameters},
             );
-            // if the route found then return it directly, instead
-            // of going further
-            if (routeToReturn != null) {
-              return routeToReturn;
+            // if the result is not null then return it directly,
+            // instead of going further
+            if (lookupResult != null) {
+              return lookupResult;
             }
           }
 
           // 2. As we are here it mean no route found under regExpNodes
           // so check under nonRegExpNodes
           if (currentNode?.nonRegExpParametricNodes != null) {
-            final routeToReturn = lookupUnderParametricNodes(
+            final lookupResult = lookupUnderParametricNodes(
               currentNode!.nonRegExpParametricNodes!,
+              pathParameters: {...pathParameters},
             );
-            // if the route found then return it directly, instead
-            // of going further
-            if (routeToReturn != null) {
-              return routeToReturn;
+            // if the result is not null then return it directly,
+            // instead of going further
+            if (lookupResult != null) {
+              return lookupResult;
             }
+          }
+        }
+
+        // 3. If tempNode is null then check under wildcardNode
+        if (tempNode == null) {
+          if (currentNode?.wildcardNode?.route != null) {
+            pathParameters[kWildcardKey] = pathSections.skip(i).join('/');
+            return LookupResult(
+              currentNode!.wildcardNode!.route!,
+              pathParameters,
+            );
           }
         }
 
         // finally assign tempNode to currentNode
         currentNode = tempNode;
-
-        // as there is no node with the pathSection we are looking,
-        // simply break the loop without going further
+        // if currentNode is null, then there is no possibility
+        // of looking further so return directly
         if (currentNode == null) {
-          break;
+          return null;
         }
       }
     }
-    // 3. If currentNode is null then try to return the
-    // matched wildcard if any
-    return (currentNode ?? previouslyMatchedWildcardNode)?.route;
+
+    // If currentNode route is null then return null directly
+    if (currentNode?.route == null) {
+      return null;
+    }
+    return LookupResult(currentNode!.route!, pathParameters);
   }
 
   /// Return all the child routes of a [node]

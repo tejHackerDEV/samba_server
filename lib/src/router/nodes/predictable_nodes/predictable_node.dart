@@ -11,6 +11,7 @@ abstract class PredictableNode extends Node {
 
   PredictableNode(
     super.pathSection, {
+    required super.key,
     super.route,
     this.staticNodes,
     this.regExpParametricNodes,

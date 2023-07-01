@@ -8,5 +8,5 @@ class StaticNode extends PredictableNode {
     super.regExpParametricNodes,
     super.nonRegExpParametricNodes,
     super.wildcardNode,
-  });
+  }) : super(key: pathSection);
 }

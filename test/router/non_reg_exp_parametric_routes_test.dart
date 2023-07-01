@@ -29,18 +29,26 @@ void main() {
     });
 
     test('Should able to lookup routes by path', () {
-      expect(
-        router.lookup(HttpMethod.get, '/users/someUserId'),
-        routesToRegister[0],
+      LookupResult? lookupResult = router.lookup(
+        HttpMethod.get,
+        '/users/someUserId',
       );
-      expect(
-        router.lookup(HttpMethod.get, '/users/someUserId/logout'),
-        routesToRegister[1],
+      expect(lookupResult?.pathParameters, {'id': 'someUserId'});
+      expect(lookupResult?.route, routesToRegister[0]);
+
+      lookupResult = router.lookup(
+        HttpMethod.get,
+        '/users/someUserId/logout',
       );
-      expect(
-        router.lookup(HttpMethod.get, '/profiles/someProfileId'),
-        routesToRegister[2],
+      expect(lookupResult?.pathParameters, {'id': 'someUserId'});
+      expect(lookupResult?.route, routesToRegister[1]);
+
+      lookupResult = router.lookup(
+        HttpMethod.get,
+        '/profiles/someProfileId',
       );
+      expect(lookupResult?.pathParameters, {'id': 'someProfileId'});
+      expect(lookupResult?.route, routesToRegister[2]);
     });
 
     test('Should not be able to lookup routes by path', () {
