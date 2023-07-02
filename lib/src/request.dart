@@ -10,6 +10,14 @@ class Request {
   /// Indicates the type of method that the request is handling.
   final HttpMethod httpMethod;
 
+  /// Holds the values of the dynamic parameters that were declared
+  /// at the time of route registration in key-value pairs
+  ///
+  /// <br>
+  /// `key` will be the name of the dynamic parameter that is declared
+  /// at registration while `value` will be actual replacement of the `key`.
+  final Map<String, String> pathParameters;
+
   /// Headers that are passed in the request as key value paris.
   final Map<String, String> headers;
 
@@ -26,6 +34,7 @@ class Request {
   Request._(
     this.ioHttpRequest,
     this.httpMethod,
+    this.pathParameters,
     this.headers,
     this.body,
   );
@@ -41,6 +50,7 @@ class Request {
     return Request._(
       ioHttpRequest,
       httpMethod,
+      {},
       ioHttpRequest.extractHeaders(),
       ioHttpRequest,
     );

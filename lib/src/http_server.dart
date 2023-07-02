@@ -99,6 +99,7 @@ class HttpServer with RouterMixin {
           response = Response.notFound();
         } else {
           // route found so invoke the interceptors & handler.
+          request.pathParameters.addAll(lookupResult.pathParameters);
           final invokedInterceptors = <Interceptor>[];
           final interceptors = lookupResult.route.interceptors(request);
           if (interceptors != null) {
