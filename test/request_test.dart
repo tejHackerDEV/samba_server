@@ -126,6 +126,7 @@ void main() {
           RouteBuilder(
             HttpMethod.get,
             '${httpServer.uri.path}/users/{id}',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
             routeHandler: (request) {
               expect(request.pathParameters.length, 1);
               return Response.ok(body: request.pathParameters);
@@ -136,6 +137,7 @@ void main() {
           RouteBuilder(
             HttpMethod.post,
             '${httpServer.uri.path}/users/{id}',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
             routeHandler: (request) {
               expect(request.pathParameters.length, 1);
               return Response.created(body: request.pathParameters);
@@ -146,6 +148,7 @@ void main() {
           RouteBuilder(
             HttpMethod.get,
             '${httpServer.uri.path}/india/{state:^[a-zA-z0-9]+\$}',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
             routeHandler: (request) {
               expect(request.pathParameters.length, 1);
               return Response.ok(body: request.pathParameters);
@@ -156,6 +159,7 @@ void main() {
           RouteBuilder(
             HttpMethod.get,
             '${httpServer.uri.path}/india/{state:^[a-zA-z0-9]+\$}/kadapa/*',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
             routeHandler: (request) {
               expect(request.pathParameters.length, 2);
               return Response.ok(body: request.pathParameters);
@@ -166,6 +170,7 @@ void main() {
           RouteBuilder(
             HttpMethod.get,
             '${httpServer.uri.path}/{route:^[a-zA-z0-9]+\$}/{id}/*',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
             routeHandler: (request) {
               expect(request.pathParameters.length, 3);
               return Response.ok(body: request.pathParameters);
@@ -176,31 +181,37 @@ void main() {
         '${httpServer.uri.path}/users/1234',
       );
       expect(response.statusCode, 200);
-      expect(response.body, '{id: 1234}');
+      expect(response.body, {'id': '1234'});
 
       response = await httpClient.post(
         '${httpServer.uri.path}/users/1234',
       );
       expect(response.statusCode, 201);
-      expect(response.body, '{id: 1234}');
+      expect(response.body, {'id': '1234'});
 
       response = await httpClient.get(
         '${httpServer.uri.path}/india/AndhraPradesh',
       );
       expect(response.statusCode, 200);
-      expect(response.body, '{state: AndhraPradesh}');
+      expect(response.body, {'state': 'AndhraPradesh'});
 
       response = await httpClient.get(
         '${httpServer.uri.path}/india/AndhraPradesh/kadapa/bhagyanagarcolony',
       );
       expect(response.statusCode, 200);
-      expect(response.body, '{state: AndhraPradesh, *: bhagyanagarcolony}');
+      expect(
+        response.body,
+        {'state': 'AndhraPradesh', '*': 'bhagyanagarcolony'},
+      );
 
       response = await httpClient.get(
         '${httpServer.uri.path}/users/1234/metaData/country',
       );
       expect(response.statusCode, 200);
-      expect(response.body, '{route: users, id: 1234, *: metaData/country}');
+      expect(
+        response.body,
+        {'route': 'users', 'id': '1234', '*': 'metaData/country'},
+      );
     });
 
     test(
