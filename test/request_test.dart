@@ -197,10 +197,10 @@ void main() {
       expect(response.body, '{state: AndhraPradesh, *: bhagyanagarcolony}');
 
       response = await httpClient.get(
-        '${httpServer.uri.path}/profiles/1234/metaData/country',
+        '${httpServer.uri.path}/users/1234/metaData/country',
       );
       expect(response.statusCode, 200);
-      expect(response.body, '{route: profiles, id: 1234, *: metaData/country}');
+      expect(response.body, '{route: users, id: 1234, *: metaData/country}');
     });
 
     test(

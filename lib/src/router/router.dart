@@ -129,93 +129,103 @@ class Router {
   }) {
     if (pathSections.isNotEmpty) {
       // only check for pathSections if its not empty
-      PredictableNode? tempNode = currentNode;
-      for (int i = 0; i < pathSections.length; ++i) {
-        final pathSection = pathSections.elementAt(i);
-        // 1. Check under static nodes.
-        tempNode = currentNode?.staticNodes?.firstWhereOrNull(
-          (childNode) => childNode.pathSection == pathSection,
+      final pathSection = pathSections.first;
+      // 1. Check under static nodes.
+      PredictableNode? tempNode = currentNode?.staticNodes?.firstWhereOrNull(
+        (childNode) => childNode.pathSection == pathSection,
+      );
+
+      if (tempNode != null) {
+        final lookupResult = _lookup(
+          pathSections.skip(1),
+          tempNode,
+          pathParameters: {...pathParameters},
         );
-
-        // 2. If tempNode is null then check under parametric nodes.
-        if (tempNode == null) {
-          LookupResult? lookupUnderParametricNodes(
-            Iterable<ParametricNode> parametricNodes, {
-            required Map<String, String> pathParameters,
-          }) {
-            for (final parametricNode in parametricNodes) {
-              final bool didPathSectionMatched;
-              switch (parametricNode) {
-                case NonRegExpParametricNode():
-                  didPathSectionMatched = true;
-                case RegExpParametricNode():
-                  didPathSectionMatched = parametricNode.regExp.hasMatch(
-                    pathSection,
-                  );
-                  break;
-                default:
-                  throw UnsupportedError('Invalid parametric node detected');
-              }
-
-              if (didPathSectionMatched) {
-                pathParameters[parametricNode.key] = pathSection;
-                return _lookup(
-                  pathSections.skip(i + 1),
-                  parametricNode,
-                  pathParameters: pathParameters,
-                );
-              }
-            }
-            return null;
-          }
-
-          // 1. Check under regExpNodes first
-          if (currentNode?.regExpParametricNodes != null) {
-            final lookupResult = lookupUnderParametricNodes(
-              currentNode!.regExpParametricNodes!,
-              pathParameters: {...pathParameters},
-            );
-            // if the result is not null then return it directly,
-            // instead of going further
-            if (lookupResult != null) {
-              return lookupResult;
-            }
-          }
-
-          // 2. As we are here it mean no route found under regExpNodes
-          // so check under nonRegExpNodes
-          if (currentNode?.nonRegExpParametricNodes != null) {
-            final lookupResult = lookupUnderParametricNodes(
-              currentNode!.nonRegExpParametricNodes!,
-              pathParameters: {...pathParameters},
-            );
-            // if the result is not null then return it directly,
-            // instead of going further
-            if (lookupResult != null) {
-              return lookupResult;
-            }
-          }
-        }
-
-        // 3. If tempNode is null then check under wildcardNode
-        if (tempNode == null) {
-          if (currentNode?.wildcardNode?.route != null) {
-            pathParameters[kWildcardKey] = pathSections.skip(i).join('/');
-            return LookupResult(
-              currentNode!.wildcardNode!.route!,
-              pathParameters,
-            );
-          }
-        }
-
-        // finally assign tempNode to currentNode
-        currentNode = tempNode;
-        // if currentNode is null, then there is no possibility
-        // of looking further so return directly
-        if (currentNode == null) {
-          return null;
+        // if the result is not null then return it directly,
+        // instead of going further
+        if (lookupResult != null) {
+          return lookupResult;
         }
       }
+
+      // 2. If we are here it means we didn't found
+      // what we are looking for under static nodes.
+      // So check under parametric nodes now.
+      {
+        LookupResult? lookupUnderParametricNodes(
+          Iterable<ParametricNode> parametricNodes, {
+          required Map<String, String> pathParameters,
+        }) {
+          for (final parametricNode in parametricNodes) {
+            final bool didPathSectionMatched;
+            switch (parametricNode) {
+              case NonRegExpParametricNode():
+                didPathSectionMatched = true;
+              case RegExpParametricNode():
+                didPathSectionMatched = parametricNode.regExp.hasMatch(
+                  pathSection,
+                );
+                break;
+              default:
+                throw UnsupportedError('Invalid parametric node detected');
+            }
+
+            if (didPathSectionMatched) {
+              pathParameters[parametricNode.key] = pathSection;
+              return _lookup(
+                pathSections.skip(1),
+                parametricNode,
+                pathParameters: pathParameters,
+              );
+            }
+          }
+          return null;
+        }
+
+        // 2.1 Check under regExpNodes first
+        if (currentNode?.regExpParametricNodes != null) {
+          final lookupResult = lookupUnderParametricNodes(
+            currentNode!.regExpParametricNodes!,
+            pathParameters: {...pathParameters},
+          );
+          // if the result is not null then return it directly,
+          // instead of going further
+          if (lookupResult != null) {
+            return lookupResult;
+          }
+        }
+
+        // 2.2 As we are here it mean no route found under regExpNodes
+        // so check under nonRegExpNodes
+        if (currentNode?.nonRegExpParametricNodes != null) {
+          final lookupResult = lookupUnderParametricNodes(
+            currentNode!.nonRegExpParametricNodes!,
+            pathParameters: {...pathParameters},
+          );
+          // if the result is not null then return it directly,
+          // instead of going further
+          if (lookupResult != null) {
+            return lookupResult;
+          }
+        }
+      }
+
+      // 3. If we are here it means we didn't found
+      // what we are looking for under parametric nodes.
+      // So check under wildcard node now.
+      {
+        if (currentNode?.wildcardNode?.route != null) {
+          pathParameters[kWildcardKey] = pathSections.join('/');
+          return LookupResult(
+            currentNode!.wildcardNode!.route!,
+            pathParameters,
+          );
+        }
+      }
+
+      // if we are here it means there is no other way of going further
+      // so simply return null
+      return null;
     }
 
     // If currentNode route is null then return null directly

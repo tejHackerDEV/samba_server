@@ -55,6 +55,34 @@ void main() {
       expect(lookupResult?.route, routesToRegister[1]);
     });
 
+    test(
+        'Should able to match parent wildcard node, if we failed to find result in child node',
+        () {
+      final routesToRegister = [
+        RouteBuilder(HttpMethod.get, '/countries/states', routeHandler: (_) {
+          return Response.ok(
+            body: 'Get all states',
+          );
+        }),
+        RouteBuilder(HttpMethod.get, '/*', routeHandler: (_) {
+          return Response.ok(
+            body: 'Handle any get routes that goes after the countries',
+          );
+        }),
+      ];
+      router
+        ..register(routesToRegister[0])
+        ..register(routesToRegister[1]);
+      final lookupResult = router.lookup(
+        HttpMethod.get,
+        '/countries/states/anotherRandom',
+      );
+      expect(lookupResult?.pathParameters, {
+        '*': 'countries/states/anotherRandom',
+      });
+      expect(lookupResult?.route, routesToRegister[1]);
+    });
+
     test('Should not be able to lookup routes by path', () {
       expect(router.lookup(HttpMethod.get, 'profiles'), isNull);
       expect(router.lookup(HttpMethod.get, '/profiles'), isNull);
