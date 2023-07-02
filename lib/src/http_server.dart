@@ -93,7 +93,11 @@ class HttpServer with RouterMixin {
       final request = Request(ioHttpRequest);
       Response? response;
       try {
-        final lookupResult = lookupRoute(request.httpMethod, request.uri.path);
+        final lookupResult = lookupRoute(
+          request.httpMethod,
+          request.completePath,
+        );
+        request.queryParameters.addAll(lookupResult.queryParameters);
         final route = lookupResult.route;
         if (route == null) {
           // set statusCode as 404 because route not registered

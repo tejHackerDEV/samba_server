@@ -18,6 +18,13 @@ class Request {
   /// at registration while `value` will be actual replacement of the `key`.
   final Map<String, String> pathParameters;
 
+  /// Holds the values of the query parameters that were passed
+  /// along with the request.
+  ///
+  /// Value of this map can be either a `String` or `List<String>`
+  /// (in most cases).
+  final Map<String, dynamic> queryParameters;
+
   /// Headers that are passed in the request as key value paris.
   final Map<String, String> headers;
 
@@ -65,4 +72,15 @@ class Request {
   Uri get uri => ioHttpRequest.uri;
 
   io.ContentType? get contentType => ioHttpRequest.headers.contentType;
+
+  /// Returns path along with any queryParameters if passed any
+  String get completePath {
+    final pathBuffer = StringBuffer(uri.path);
+    if (uri.query.isNotEmpty) {
+      pathBuffer
+        ..write('?')
+        ..write(uri.query);
+    }
+    return pathBuffer.toString();
+  }
 }

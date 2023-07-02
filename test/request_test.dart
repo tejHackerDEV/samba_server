@@ -234,4 +234,119 @@ void main() {
       expect(response.body, isNull);
     });
   });
+
+  group('QueryParameters tests', () {
+    test('Server should able to decode queryParameters for incoming requests',
+        () async {
+      httpServer
+        ..registerRoute(
+          RouteBuilder(
+            HttpMethod.get,
+            '${httpServer.uri.path}/users/{id}',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
+            routeHandler: (request) {
+              return Response.ok(body: request.queryParameters);
+            },
+          ),
+        )
+        ..registerRoute(
+          RouteBuilder(
+            HttpMethod.post,
+            '${httpServer.uri.path}/users/{id}',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
+            routeHandler: (request) {
+              return Response.created(body: request.queryParameters);
+            },
+          ),
+        )
+        ..registerRoute(
+          RouteBuilder(
+            HttpMethod.get,
+            '${httpServer.uri.path}/india/{state:^[a-zA-z0-9]+\$}',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
+            routeHandler: (request) {
+              return Response.ok(body: request.queryParameters);
+            },
+          ),
+        )
+        ..registerRoute(
+          RouteBuilder(
+            HttpMethod.get,
+            '${httpServer.uri.path}/india/{state:^[a-zA-z0-9]+\$}/kadapa/*',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
+            routeHandler: (request) {
+              return Response.ok(body: request.queryParameters);
+            },
+          ),
+        )
+        ..registerRoute(
+          RouteBuilder(
+            HttpMethod.get,
+            '${httpServer.uri.path}/{route:^[a-zA-z0-9]+\$}/{id}/*',
+            interceptorsBuilder: (_) => [JsonMapResponseEncoder()],
+            routeHandler: (request) {
+              return Response.ok(body: request.queryParameters);
+            },
+          ),
+        );
+      http_client.HttpResponse response = await httpClient.get(
+        '${httpServer.uri.path}/users/1234?role=admin',
+      );
+      expect(response.statusCode, 200);
+      expect(response.body, {'role': 'admin'});
+
+      response = await httpClient.post(
+        '${httpServer.uri.path}/users/1234?role=admin&role=staff',
+      );
+      expect(response.statusCode, 201);
+      expect(response.body, {
+        'role': ['admin', 'staff']
+      });
+
+      response = await httpClient.get(
+        '${httpServer.uri.path}/india/AndhraPradesh',
+      );
+      expect(response.statusCode, 200);
+      expect(response.body, isEmpty);
+
+      response = await httpClient.get(
+        '${httpServer.uri.path}/india/AndhraPradesh/kadapa/bhagyanagarcolony',
+      );
+      expect(response.statusCode, 200);
+      expect(response.body, isEmpty);
+
+      response = await httpClient.get(
+        '${httpServer.uri.path}/users/1234/metaData/country?role=admin&role=staff&role=user&isActive=true',
+      );
+      expect(response.statusCode, 200);
+      expect(
+        response.body,
+        {
+          'role': ['admin', 'staff', 'user'],
+          'isActive': 'true'
+        },
+      );
+    });
+
+    test(
+        'Should not contain any body as response has status code of No-Content (204) ',
+        () async {
+      final responseToGet = Response(
+        statusCode: 204,
+        body: 'I wont be included in the body',
+      );
+      httpServer.registerRoute(
+        RouteBuilder(
+          HttpMethod.put,
+          '${httpServer.uri.path}/no-content',
+          routeHandler: (_) => responseToGet,
+        ),
+      );
+      final response = await httpClient.put(
+        '${httpServer.uri.path}/no-content',
+      );
+      expect(response.statusCode, responseToGet.statusCode);
+      expect(response.body, isNull);
+    });
+  });
 }
