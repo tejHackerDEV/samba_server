@@ -94,14 +94,17 @@ class HttpServer with RouterMixin {
       Response? response;
       try {
         final lookupResult = lookupRoute(request.httpMethod, request.uri.path);
-        if (lookupResult == null) {
+        final route = lookupResult.route;
+        if (route == null) {
           // set statusCode as 404 because route not registered
           response = Response.notFound();
         } else {
           // route found so invoke the interceptors & handler.
-          request.pathParameters.addAll(lookupResult.pathParameters);
+          if (lookupResult.pathParameters != null) {
+            request.pathParameters.addAll(lookupResult.pathParameters!);
+          }
           final invokedInterceptors = <Interceptor>[];
-          final interceptors = lookupResult.route.interceptors(request);
+          final interceptors = route.interceptors(request);
           if (interceptors != null) {
             for (final interceptor in interceptors) {
               response = await interceptor.onInit(request);
@@ -113,7 +116,7 @@ class HttpServer with RouterMixin {
             }
           }
           // only invoke the handler if the response is not set by the interceptors
-          response ??= await lookupResult.route.handler(request);
+          response ??= await route.handler(request);
           // invoke the interceptors onDispose in the reverse order they get executed
           for (int i = invokedInterceptors.length - 1; i >= 0; --i) {
             assert(

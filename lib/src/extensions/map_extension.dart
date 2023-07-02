@@ -12,14 +12,12 @@ extension MapExtensions on Map<String, dynamic> {
       update(
         key,
         (previousValue) {
-          if (previousValue is! Iterable) {
-            return [previousValue, value];
-          }
-          if (previousValue.length > 2) {
-            // only spread the previousValue if the length of it
-            // is greater than 0. This is to maintain the consistency
-            // fot Iterable values.
-            return [...previousValue, value];
+          if (previousValue is Iterable) {
+            if (previousValue.isNotEmpty) {
+              if (previousValue.first is Iterable || value is! Iterable) {
+                return [...previousValue, value];
+              }
+            }
           }
           return [previousValue, value];
         },

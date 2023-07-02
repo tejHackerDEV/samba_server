@@ -35,6 +35,7 @@ class Request {
     this.ioHttpRequest,
     this.httpMethod,
     this.pathParameters,
+    this.queryParameters,
     this.headers,
     this.body,
   );
@@ -50,6 +51,7 @@ class Request {
     return Request._(
       ioHttpRequest,
       httpMethod,
+      {},
       {},
       ioHttpRequest.extractHeaders(),
       ioHttpRequest,

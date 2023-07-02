@@ -31,15 +31,15 @@ void main() {
     test('Should able to lookup routes by path', () {
       for (final route in routesToRegister) {
         final lookupResult = router.lookup(HttpMethod.get, route.path);
-        expect(lookupResult?.pathParameters, isEmpty);
-        expect(lookupResult?.route, route);
+        expect(lookupResult.pathParameters, isEmpty);
+        expect(lookupResult.route, route);
       }
     });
 
     test('Should not be able to lookup routes by path', () {
-      expect(router.lookup(HttpMethod.get, 'random'), isNull);
-      expect(router.lookup(HttpMethod.get, '/random'), isNull);
-      expect(router.lookup(HttpMethod.get, '/random/random'), isNull);
+      expect(router.lookup(HttpMethod.get, 'random').route, isNull);
+      expect(router.lookup(HttpMethod.get, '/random').route, isNull);
+      expect(router.lookup(HttpMethod.get, '/random/random').route, isNull);
     });
   });
 }

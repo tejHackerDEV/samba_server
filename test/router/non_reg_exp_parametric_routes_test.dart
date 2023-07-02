@@ -29,32 +29,32 @@ void main() {
     });
 
     test('Should able to lookup routes by path', () {
-      LookupResult? lookupResult = router.lookup(
+      LookupResult lookupResult = router.lookup(
         HttpMethod.get,
         '/users/someUserId',
       );
-      expect(lookupResult?.pathParameters, {'id': 'someUserId'});
-      expect(lookupResult?.route, routesToRegister[0]);
+      expect(lookupResult.pathParameters, {'id': 'someUserId'});
+      expect(lookupResult.route, routesToRegister[0]);
 
       lookupResult = router.lookup(
         HttpMethod.get,
         '/users/someUserId/logout',
       );
-      expect(lookupResult?.pathParameters, {'id': 'someUserId'});
-      expect(lookupResult?.route, routesToRegister[1]);
+      expect(lookupResult.pathParameters, {'id': 'someUserId'});
+      expect(lookupResult.route, routesToRegister[1]);
 
       lookupResult = router.lookup(
         HttpMethod.get,
         '/profiles/someProfileId',
       );
-      expect(lookupResult?.pathParameters, {'id': 'someProfileId'});
-      expect(lookupResult?.route, routesToRegister[2]);
+      expect(lookupResult.pathParameters, {'id': 'someProfileId'});
+      expect(lookupResult.route, routesToRegister[2]);
     });
 
     test('Should not be able to lookup routes by path', () {
-      expect(router.lookup(HttpMethod.get, 'random'), isNull);
-      expect(router.lookup(HttpMethod.get, '/random'), isNull);
-      expect(router.lookup(HttpMethod.get, '/random/random'), isNull);
+      expect(router.lookup(HttpMethod.get, 'random').route, isNull);
+      expect(router.lookup(HttpMethod.get, '/random').route, isNull);
+      expect(router.lookup(HttpMethod.get, '/random/random').route, isNull);
     });
   });
 }

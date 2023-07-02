@@ -49,31 +49,32 @@ void main() {
     });
 
     test('Should able to lookup routes by path', () {
-      LookupResult? lookupResult = router.lookup(HttpMethod.get, '/users/1234');
-      expect(lookupResult?.pathParameters, {'id': '1234'});
-      expect(lookupResult?.route, routesToRegister[0]);
+      LookupResult lookupResult = router.lookup(HttpMethod.get, '/users/1234');
+      expect(lookupResult.pathParameters, {'id': '1234'});
+      expect(lookupResult.route, routesToRegister[0]);
 
       lookupResult = router.lookup(HttpMethod.get, '/users/someuserid/logout');
-      expect(lookupResult?.pathParameters, {'id': 'someuserid'});
-      expect(lookupResult?.route, routesToRegister[1]);
+      expect(lookupResult.pathParameters, {'id': 'someuserid'});
+      expect(lookupResult.route, routesToRegister[1]);
 
       lookupResult = router.lookup(HttpMethod.get, '/users/SOMEUSERID/logout');
-      expect(lookupResult?.pathParameters, {'id': 'SOMEUSERID'});
-      expect(lookupResult?.route, routesToRegister[2]);
+      expect(lookupResult.pathParameters, {'id': 'SOMEUSERID'});
+      expect(lookupResult.route, routesToRegister[2]);
 
       lookupResult = router.lookup(
         HttpMethod.get,
         '/users/someUserId1234/logout',
       );
-      expect(lookupResult?.pathParameters, {'id': 'someUserId1234'});
-      expect(lookupResult?.route, routesToRegister[3]);
+      expect(lookupResult.pathParameters, {'id': 'someUserId1234'});
+      expect(lookupResult.route, routesToRegister[3]);
     });
 
     test('Should not be able to lookup routes by path', () {
-      expect(router.lookup(HttpMethod.get, 'random'), isNull);
-      expect(router.lookup(HttpMethod.get, '/random'), isNull);
-      expect(router.lookup(HttpMethod.get, '/random/random'), isNull);
-      expect(router.lookup(HttpMethod.get, '/users/someUserId1234'), isNull);
+      expect(router.lookup(HttpMethod.get, 'random').route, isNull);
+      expect(router.lookup(HttpMethod.get, '/random').route, isNull);
+      expect(router.lookup(HttpMethod.get, '/random/random').route, isNull);
+      expect(
+          router.lookup(HttpMethod.get, '/users/someUserId1234').route, isNull);
     });
   });
 }

@@ -13,9 +13,10 @@ mixin RouterMixin {
 
   /// Return a `route` registered with the [path] provided under
   /// respective [httpMethod]
-  LookupResult? lookupRoute(HttpMethod httpMethod, String path) =>
-      _router.lookup(
-        httpMethod,
-        path,
-      );
+  LookupResult lookupRoute(HttpMethod httpMethod, String path) {
+    return _router.lookup(
+      httpMethod,
+      path,
+    );
+  }
 }

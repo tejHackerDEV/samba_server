@@ -2,13 +2,16 @@ import 'package:samba_server/src/extensions/iterable_extension.dart';
 
 import '../helpers/enums/index.dart';
 import 'constants.dart';
+import 'extensions/string_extension.dart';
 import 'lookup_result.dart';
 import 'nodes/node.dart';
 import 'nodes/predictable_nodes/parametric_node.dart';
 import 'nodes/predictable_nodes/predictable_node.dart';
 import 'nodes/predictable_nodes/static_node.dart';
 import 'nodes/wildcard_node.dart';
+import 'result.dart';
 import 'route.dart';
+import 'sanitized_path.dart';
 
 class Router {
   /// Holds the rootNode of each `HttpMethod` under their respective key
@@ -18,20 +21,6 @@ class Router {
     for (final httpMethod in HttpMethod.values) {
       _nodeMap[httpMethod] = StaticNode(kPathSectionDivider);
     }
-  }
-
-  /// Sanitizes the [path] & return the pathSections
-  /// that can be used for processing. So Before processing
-  /// any path that comes to router, we should sanitize it
-  /// first to avoid any issues.
-  Iterable<String> _sanitizePath(String path) {
-    List<String> pathSections = path.split(kPathSectionDivider);
-    for (int i = pathSections.length - 1; i >= 0; --i) {
-      if (pathSections[i].isEmpty) {
-        pathSections.removeAt(i);
-      }
-    }
-    return pathSections;
   }
 
   /// Register a new [route]
@@ -97,7 +86,7 @@ class Router {
       }
     }
 
-    final pathSections = _sanitizePath(route.path);
+    final pathSections = SanitizedPath(route.path).pathSections;
     Node currentNode = _nodeMap[route.httpMethod]!;
     for (final pathSection in pathSections) {
       currentNode = insertNodeInto(currentNode, Node.create(pathSection));
@@ -109,12 +98,15 @@ class Router {
   /// under the respected [httpMethod].
   /// <br>
   /// If no `route` is registered with [path] returns `null`.
-  LookupResult? lookup(HttpMethod httpMethod, String path) {
-    final pathSections = _sanitizePath(path);
-    return _lookup(
-      pathSections,
-      _nodeMap[httpMethod] as StaticNode,
-      pathParameters: {},
+  LookupResult lookup(HttpMethod httpMethod, String path) {
+    final sanitizedPath = SanitizedPath(path);
+    return LookupResult(
+      sanitizedPath.queryString?.toQueryParameters() ?? {},
+      _lookup(
+        sanitizedPath.pathSections,
+        _nodeMap[httpMethod] as StaticNode,
+        pathParameters: {},
+      ),
     );
   }
 
@@ -122,7 +114,7 @@ class Router {
   /// with the given [pathSections].
   /// <br>
   /// If no `route` is registered then returns `null`.
-  LookupResult? _lookup(
+  Result? _lookup(
     Iterable<String> pathSections,
     PredictableNode? currentNode, {
     required Map<String, String> pathParameters,
@@ -136,15 +128,15 @@ class Router {
       );
 
       if (tempNode != null) {
-        final lookupResult = _lookup(
+        final result = _lookup(
           pathSections.skip(1),
           tempNode,
           pathParameters: {...pathParameters},
         );
         // if the result is not null then return it directly,
         // instead of going further
-        if (lookupResult != null) {
-          return lookupResult;
+        if (result != null) {
+          return result;
         }
       }
 
@@ -152,7 +144,7 @@ class Router {
       // what we are looking for under static nodes.
       // So check under parametric nodes now.
       {
-        LookupResult? lookupUnderParametricNodes(
+        Result? lookupUnderParametricNodes(
           Iterable<ParametricNode> parametricNodes, {
           required Map<String, String> pathParameters,
         }) {
@@ -184,28 +176,28 @@ class Router {
 
         // 2.1 Check under regExpNodes first
         if (currentNode?.regExpParametricNodes != null) {
-          final lookupResult = lookupUnderParametricNodes(
+          final result = lookupUnderParametricNodes(
             currentNode!.regExpParametricNodes!,
             pathParameters: {...pathParameters},
           );
           // if the result is not null then return it directly,
           // instead of going further
-          if (lookupResult != null) {
-            return lookupResult;
+          if (result != null) {
+            return result;
           }
         }
 
         // 2.2 As we are here it mean no route found under regExpNodes
         // so check under nonRegExpNodes
         if (currentNode?.nonRegExpParametricNodes != null) {
-          final lookupResult = lookupUnderParametricNodes(
+          final result = lookupUnderParametricNodes(
             currentNode!.nonRegExpParametricNodes!,
             pathParameters: {...pathParameters},
           );
           // if the result is not null then return it directly,
           // instead of going further
-          if (lookupResult != null) {
-            return lookupResult;
+          if (result != null) {
+            return result;
           }
         }
       }
@@ -216,7 +208,7 @@ class Router {
       {
         if (currentNode?.wildcardNode?.route != null) {
           pathParameters[kWildcardKey] = pathSections.join('/');
-          return LookupResult(
+          return Result(
             currentNode!.wildcardNode!.route!,
             pathParameters,
           );
@@ -232,7 +224,7 @@ class Router {
     if (currentNode?.route == null) {
       return null;
     }
-    return LookupResult(currentNode!.route!, pathParameters);
+    return Result(currentNode!.route!, pathParameters);
   }
 
   /// Return all the child routes of a [node]
