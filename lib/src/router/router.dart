@@ -18,9 +18,7 @@ class Router {
   final _nodeMap = <HttpMethod, Node>{};
 
   Router() {
-    for (final httpMethod in HttpMethod.values) {
-      _nodeMap[httpMethod] = StaticNode(kPathSectionDivider);
-    }
+    reset();
   }
 
   /// Register a new [route]
@@ -281,6 +279,26 @@ class Router {
         );
     }
     return routes;
+  }
+
+  /// Resets the route of a [httpMethod]
+  void _reset(HttpMethod httpMethod) {
+    _nodeMap[httpMethod] = StaticNode(kPathSectionDivider);
+  }
+
+  /// Resets the routes registered.
+  ///
+  /// <br>
+  /// If [httpMethod] is defined then routes only
+  /// present in that nodes will be deleted
+  void reset([HttpMethod? httpMethod]) {
+    if (httpMethod != null) {
+      _reset(httpMethod);
+      return;
+    }
+    for (final httpMethod in HttpMethod.values) {
+      _reset(httpMethod);
+    }
   }
 
   /// Returns all routes inserted into router

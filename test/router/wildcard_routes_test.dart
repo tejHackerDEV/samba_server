@@ -29,6 +29,8 @@ void main() {
       }
     });
 
+    tearDown(() => router.reset());
+
     test('Should able to register routes', () {
       expect(router.routes, routesToRegister);
     });

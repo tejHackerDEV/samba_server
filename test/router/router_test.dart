@@ -53,6 +53,8 @@ void main() {
       }
     });
 
+    tearDown(() => router.reset());
+
     test('Should able to lookup routes by path', () {
       LookupResult lookupResult = router.lookup(
         HttpMethod.get,
@@ -221,8 +223,48 @@ void main() {
       expect(router.lookup(HttpMethod.get, 'random').route, isNull);
       expect(router.lookup(HttpMethod.get, '/random').route, isNull);
       expect(router.lookup(HttpMethod.get, '/random/random').route, isNull);
-      expect(router.lookup(HttpMethod.get, '/users/someUserId/logout').route,
-          isNull);
+      expect(
+        router.lookup(HttpMethod.get, '/users/someUserId/logout').route,
+        isNull,
+      );
+    });
+
+    test('Should able to reset registered routes', () {
+      expect(router.routes, isNotEmpty);
+      router.reset();
+      expect(router.routes, isEmpty);
+    });
+
+    test('Should able to reset registered routes under specific HttpMethod',
+        () {
+      router.reset();
+      expect(router.routes, isEmpty);
+      router
+        ..register(
+          RouteBuilder(HttpMethod.get, 'get', routeHandler: (_) {
+            return Response.ok(body: 'Get route');
+          }),
+        )
+        ..register(
+          RouteBuilder(HttpMethod.post, 'post', routeHandler: (_) {
+            return Response.ok(body: 'Get route');
+          }),
+        )
+        ..register(
+          RouteBuilder(HttpMethod.put, 'put', routeHandler: (_) {
+            return Response.ok(body: 'Get route');
+          }),
+        );
+      expect(router.routes.length, 3);
+
+      router.reset(HttpMethod.put);
+      expect(router.routes.length, 2);
+
+      router.reset(HttpMethod.post);
+      expect(router.routes.length, 1);
+
+      router.reset(HttpMethod.get);
+      expect(router.routes.length, 0);
     });
   });
 }
