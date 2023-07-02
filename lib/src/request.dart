@@ -2,6 +2,7 @@ import 'dart:io' as io;
 
 import 'package:samba_server/src/extensions/io_http_request_extension.dart';
 
+import 'errors.dart';
 import 'helpers/enums/index.dart';
 
 class Request {
@@ -51,7 +52,7 @@ class Request {
     final httpMethod = ioHttpRequest.extractHttpMethod();
     if (httpMethod == null) {
       // we don't support this method, so return throw an error.
-      throw UnsupportedError(
+      throw MethodNotSupportedError(
         '${ioHttpRequest.method} httpMethod is not supported',
       );
     }

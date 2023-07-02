@@ -1,14 +1,20 @@
 import 'dart:io' as io;
 
+import 'errors.dart';
 import 'interceptor/index.dart';
 import 'request.dart';
 import 'response.dart';
 import 'router/index.dart';
 import 'utils/headers.dart';
+import 'utils/typedefs.dart';
 
 class HttpServer with RouterMixin {
   /// Holds the underlying [io.HttpServer] instance.
   io.HttpServer? _ioHttpServer;
+
+  /// Will be invoked every-time, if server gets any runtime exception
+  /// while handling any requests.
+  ErrorHandler? _errorHandler;
 
   /// Indicates whether the server is running or not
   bool get isRunning => _ioHttpServer != null;
@@ -90,56 +96,80 @@ class HttpServer with RouterMixin {
   void _listerForIncomingRequests() {
     _assertServerRunning();
     _ioHttpServer!.listen((ioHttpRequest) async {
-      final request = Request(ioHttpRequest);
-      Response? response;
+      final defaultErrorResponse = Response.internalServerError(
+        body: 'Something went wrong, please try again later.',
+      );
       try {
-        final lookupResult = lookupRoute(
-          request.httpMethod,
-          request.completePath,
-        );
-        request.queryParameters.addAll(lookupResult.queryParameters);
-        final route = lookupResult.route;
-        if (route == null) {
-          // set statusCode as 404 because route not registered
-          response = Response.notFound();
-        } else {
-          // route found so invoke the interceptors & handler.
-          if (lookupResult.pathParameters != null) {
-            request.pathParameters.addAll(lookupResult.pathParameters!);
-          }
-          final invokedInterceptors = <Interceptor>[];
-          final interceptors = route.interceptors(request);
-          if (interceptors != null) {
-            for (final interceptor in interceptors) {
-              response = await interceptor.onInit(request);
-              invokedInterceptors.add(interceptor);
-              // Don't go further if any interceptor returned response.
-              if (response != null) {
-                break;
+        Request? request;
+        Response? response;
+        final invokedInterceptors = <Interceptor>[];
+        try {
+          request = Request(ioHttpRequest);
+          final lookupResult = lookupRoute(
+            request.httpMethod,
+            request.completePath,
+          );
+          request.queryParameters.addAll(lookupResult.queryParameters);
+          final route = lookupResult.route;
+          if (route == null) {
+            // set statusCode as 404 because route not registered
+            response = Response.notFound();
+          } else {
+            // route found so invoke the interceptors & handler.
+            if (lookupResult.pathParameters != null) {
+              request.pathParameters.addAll(lookupResult.pathParameters!);
+            }
+            final interceptors = route.interceptors(request);
+            if (interceptors != null) {
+              for (final interceptor in interceptors) {
+                response = await interceptor.onInit(request);
+                invokedInterceptors.add(interceptor);
+                // Don't go further if any interceptor returned response.
+                if (response != null) {
+                  break;
+                }
               }
             }
+            // only invoke the handler if the response is not set by the interceptors
+            response ??= await route.handler(request);
+            // invoke the interceptors onDispose in the
+            // reverse order they get executed, if request is not null.
+            for (int i = invokedInterceptors.length - 1; i >= 0; --i) {
+              assert(
+                response != null,
+                'Response should not be null at this point of time',
+              );
+              response = await invokedInterceptors.elementAt(i).onDispose(
+                    request,
+                    response!,
+                  );
+            }
           }
-          // only invoke the handler if the response is not set by the interceptors
-          response ??= await route.handler(request);
-          // invoke the interceptors onDispose in the reverse order they get executed
-          for (int i = invokedInterceptors.length - 1; i >= 0; --i) {
-            assert(
-              response != null,
-              'Response should not be null at this point of time',
-            );
-            response = await invokedInterceptors.elementAt(i).onDispose(
-                  request,
-                  response!,
-                );
-          }
+        } on MethodNotAllowedError catch (error) {
+          response = Response.methodNotAllowed(body: error.message);
+        } on MethodNotSupportedError catch (error) {
+          response = Response.methodNotAllowed(body: error.message);
+        } catch (error, stackTrace) {
+          response = await _errorHandler?.call(
+                request,
+                response,
+                error,
+                stackTrace,
+              ) ??
+              defaultErrorResponse;
         }
-      } on UnsupportedError catch (error) {
-        response = Response.methodNotAllowed(body: error);
+        return _sendBackResponse(
+          ioHttpResponse: ioHttpRequest.response,
+          response: response!,
+        );
+      } catch (error) {
+        // if we reached here it means something bad has happened
+        // & user error handling also failed, so send default error.
+        return _sendBackResponse(
+          ioHttpResponse: ioHttpRequest.response,
+          response: defaultErrorResponse,
+        );
       }
-      return _sendBackResponse(
-        ioHttpResponse: ioHttpRequest.response,
-        response: response!,
-      );
     });
   }
 
@@ -165,6 +195,18 @@ class HttpServer with RouterMixin {
       shared: shared,
     );
     _listerForIncomingRequests();
+  }
+
+  /// Adds an global [errorHandler] to the server.
+  /// If any uncaught exceptions occurs while handling requests
+  /// this will be invoked by the server.
+  void addErrorHandler(ErrorHandler errorHandler) {
+    if (_errorHandler != null) {
+      throw AssertionError(
+        'A error handler is already registered, so can\'t add one more',
+      );
+    }
+    _errorHandler = errorHandler;
   }
 
   /// Permanently stops this [HttpServer] from listening for new
