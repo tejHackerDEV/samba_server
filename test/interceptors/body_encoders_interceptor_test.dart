@@ -13,7 +13,7 @@ void main() {
   final applicationJson = 'application/json';
   final plainText = 'text/plain';
 
-  final httpServer = HttpServer();
+  final httpServer = HttpServer(shouldEnableDefaultResponseEncoders: false);
 
   setUp(() async => await httpServer.bind(address: address, port: port));
 

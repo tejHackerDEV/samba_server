@@ -9,6 +9,33 @@ import 'utils/headers.dart';
 import 'utils/typedefs.dart';
 
 class HttpServer with RouterMixin {
+  /// Holds all the [ResponseEncoder]'s that will be used
+  /// for encoding all responses body by default, if matched
+  /// with any
+  final Iterable<ResponseEncoder> _defaultResponseEncoders;
+
+  HttpServer._(this._defaultResponseEncoders);
+
+  /// [shouldEnableDefaultResponseEncoders] if `true` then all
+  /// responses body will be encoded by the supported responseEncoder,
+  /// if `false` then response will not be encoded by default unless an
+  /// [ResponseEncoder] is added explicitly as a [Interceptor].
+  factory HttpServer({
+    bool shouldEnableDefaultResponseEncoders = true,
+  }) {
+    final responseEncoders = <ResponseEncoder>[];
+    if (shouldEnableDefaultResponseEncoders) {
+      responseEncoders.addAll([
+        JsonMapResponseEncoder(),
+        JsonListResponseEncoder(),
+        StringResponseEncoder(),
+        NumResponseEncoder(),
+        BoolResponseEncoder(),
+      ]);
+    }
+    return HttpServer._(responseEncoders);
+  }
+
   /// Holds the underlying [io.HttpServer] instance.
   io.HttpServer? _ioHttpServer;
 
@@ -57,7 +84,7 @@ class HttpServer with RouterMixin {
   Future<void> _sendBackResponse({
     required io.HttpResponse ioHttpResponse,
     required Response response,
-  }) {
+  }) async {
     ioHttpResponse.statusCode = response.statusCode;
     response.headers.forEach((key, value) {
       ioHttpResponse.headers.set(key, value);
@@ -157,6 +184,12 @@ class HttpServer with RouterMixin {
                 stackTrace,
               ) ??
               defaultErrorResponse;
+        }
+        if (request != null) {
+          // only encode response if the request is not null
+          for (final responseEncoder in _defaultResponseEncoders) {
+            response = await responseEncoder.onDispose(request, response!);
+          }
         }
         return _sendBackResponse(
           ioHttpResponse: ioHttpRequest.response,
