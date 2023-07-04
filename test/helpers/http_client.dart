@@ -131,4 +131,23 @@ class HttpClient {
       body: response.data,
     );
   }
+
+  Future<HttpResponse<T>> options<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? headers,
+    Object? data,
+  }) async {
+    final response = await _dio.request<T>(
+      path,
+      queryParameters: queryParameters,
+      options: Options(method: 'OPTIONS', headers: headers),
+      data: data,
+    );
+    return HttpResponse(
+      statusCode: response.statusCode!,
+      headers: response.headers.map,
+      body: response.data,
+    );
+  }
 }

@@ -19,4 +19,12 @@ mixin RouterMixin {
       path,
     );
   }
+
+  /// Resets all the routes.
+  ///
+  /// If [httpMethod] is passed, then only routes under that method
+  /// will be reset instead of all
+  void resetRoutes([HttpMethod? httpMethod]) {
+    _router.reset(httpMethod);
+  }
 }
