@@ -43,6 +43,10 @@ class HttpServer with RouterMixin {
   /// while handling any requests.
   ErrorHandler? _errorHandler;
 
+  /// Will holds all the global [Interceptor]'s that will be invoked
+  /// for each & every request no matter what.
+  Iterable<Interceptor>? _globalInterceptors;
+
   /// Indicates whether the server is running or not
   bool get isRunning => _ioHttpServer != null;
 
@@ -147,14 +151,17 @@ class HttpServer with RouterMixin {
               request.pathParameters.addAll(lookupResult.pathParameters!);
             }
             final interceptors = route.interceptors(request);
-            if (interceptors != null) {
-              for (final interceptor in interceptors) {
-                response = await interceptor.onInit(request);
-                invokedInterceptors.add(interceptor);
-                // Don't go further if any interceptor returned response.
-                if (response != null) {
-                  break;
-                }
+            // run any global interceptors at first before invoking
+            // route's interceptors
+            for (final interceptor in [
+              ...?_globalInterceptors,
+              ...?interceptors,
+            ]) {
+              response = await interceptor.onInit(request);
+              invokedInterceptors.add(interceptor);
+              // Don't go further if any interceptor returned response.
+              if (response != null) {
+                break;
               }
             }
             // only invoke the handler if the response is not set by the interceptors
@@ -240,6 +247,15 @@ class HttpServer with RouterMixin {
       );
     }
     _errorHandler = errorHandler;
+  }
+
+  void addInterceptors(Iterable<Interceptor> globalInterceptors) {
+    if (_globalInterceptors != null) {
+      throw AssertionError(
+        'GlobalInterceptors were already registered, so can\'t add one more',
+      );
+    }
+    _globalInterceptors = globalInterceptors;
   }
 
   /// Permanently stops this [HttpServer] from listening for new
