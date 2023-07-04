@@ -41,7 +41,7 @@ class HttpServer with RouterMixin {
 
   /// Will be invoked every-time, if server gets any runtime exception
   /// while handling any requests.
-  ErrorHandler? _errorHandler;
+  ErrorHandler? _globalErrorHandler;
 
   /// Will holds all the global [Interceptor]'s that will be invoked
   /// for each & every request no matter what.
@@ -184,7 +184,7 @@ class HttpServer with RouterMixin {
         } on MethodNotSupportedError catch (error) {
           response = Response.methodNotAllowed(body: error.message);
         } catch (error, stackTrace) {
-          response = await _errorHandler?.call(
+          response = await _globalErrorHandler?.call(
                 request,
                 response,
                 error,
@@ -241,12 +241,12 @@ class HttpServer with RouterMixin {
   /// If any uncaught exceptions occurs while handling requests
   /// this will be invoked by the server.
   void addErrorHandler(ErrorHandler errorHandler) {
-    if (_errorHandler != null) {
+    if (_globalErrorHandler != null) {
       throw AssertionError(
-        'A error handler is already registered, so can\'t add one more',
+        'A GlobalErrorHandler is already registered, so can\'t add one more',
       );
     }
-    _errorHandler = errorHandler;
+    _globalErrorHandler = errorHandler;
   }
 
   void addInterceptors(Iterable<Interceptor> globalInterceptors) {
@@ -267,9 +267,10 @@ class HttpServer with RouterMixin {
   /// If [gracefully] is `false`, active connections will be closed immediately.
   Future<void> shutdown({bool gracefully = true}) async {
     _assertServerRunning();
-    await _ioHttpServer?.close(
-      force: gracefully,
-    );
+    await _ioHttpServer?.close(force: gracefully);
+    resetRoutes();
+    _globalInterceptors = null;
+    _globalErrorHandler = null;
     _ioHttpServer = null;
   }
 }
