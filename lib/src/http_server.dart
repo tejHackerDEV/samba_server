@@ -7,6 +7,7 @@ import 'response.dart';
 import 'router/index.dart';
 import 'utils/headers.dart';
 import 'utils/typedefs.dart';
+import 'web_socket/index.dart';
 
 class HttpServer with RouterMixin {
   /// Holds all the [ResponseEncoder]'s that will be used
@@ -89,6 +90,15 @@ class HttpServer with RouterMixin {
     required io.HttpResponse ioHttpResponse,
     required Response response,
   }) async {
+    if (response is WebSocketResponse) {
+      /**
+       * If the response is of type WebSocketResponse,
+       * then don't do anything, as things will be already
+       * processed by the underlying `io.WebSocket`,
+       * so processing again will result in an error
+       */
+      return;
+    }
     ioHttpResponse.statusCode = response.statusCode;
     response.headers.forEach((key, value) {
       ioHttpResponse.headers.set(key, value);

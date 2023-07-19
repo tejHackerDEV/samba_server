@@ -1,5 +1,6 @@
 import 'dart:io' as io;
 
+import 'package:samba_server/src/extensions/io_http_headers_extension.dart';
 import 'package:samba_server/src/extensions/io_http_request_extension.dart';
 
 import 'errors.dart';
@@ -61,7 +62,7 @@ class Request {
       httpMethod,
       {},
       {},
-      ioHttpRequest.extractHeaders(),
+      ioHttpRequest.headers.toMap(),
       ioHttpRequest,
     );
   }

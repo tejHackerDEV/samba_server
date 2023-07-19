@@ -6,3 +6,4 @@ export 'src/interceptor/index.dart';
 export 'src/request.dart';
 export 'src/response.dart';
 export 'src/router/index.dart';
+export 'src/web_socket/index.dart';

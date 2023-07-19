@@ -1,5 +1,7 @@
 import 'dart:io' as io;
 
+import 'package:samba_server/src/extensions/io_http_headers_extension.dart';
+
 /// A minimalistic version of [io.HttpResponse] which will hide
 /// the complexities of [io.HttpResponse] class.
 class Response {
@@ -11,6 +13,13 @@ class Response {
 
   /// This will be set as a body for the response.
   Object? body;
+
+  /// Creates an instance from the [ioHttpResponse]
+  Response.fromIO(io.HttpResponse ioHttpResponse)
+      : statusCode = ioHttpResponse.statusCode,
+        body = null {
+    headers.addAll(ioHttpResponse.headers.toMap());
+  }
 
   /// Return response with `io.HttpStatus.ok` as [statusCode]
   Response.ok({
