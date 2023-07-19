@@ -18,9 +18,9 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
   final String path;
 
   /// Stores all the clients that has connected to this route
-  final List<WebSocket> _clients;
+  final _clientMap = <String, WebSocket>{};
 
-  WebSocketRoute(this.path) : _clients = [];
+  WebSocketRoute(this.path);
 
   @override
   Iterable<Interceptor>? interceptors(Request request) => null;
@@ -58,7 +58,7 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
     });
     runZonedGuarded(() {
       // Store the client
-      _clients.add(webSocket);
+      _clientMap[webSocket.id] = webSocket;
       webSocket.listen();
       onConnected.call(webSocket);
     }, (error, stackTrace) {
@@ -83,7 +83,7 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
   }) async {
     try {
       // remove the client
-      _clients.remove(webSocket);
+      _clientMap.remove(webSocket.id);
       final response = await onDone(
         WebSocketResponse(
           webSocket,
@@ -96,5 +96,5 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
     }
   }
 
-  Iterable<WebSocket> get clients => _clients;
+  Iterable<WebSocket> get clients => _clientMap.values;
 }

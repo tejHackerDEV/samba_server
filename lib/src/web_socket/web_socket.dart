@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:slugid/slugid.dart';
+
 import 'event_emitter.dart';
 
 const _kEventNameKey = 'name';
@@ -14,7 +16,14 @@ class WebSocket extends EventEmitter {
   /// gets disconnected.
   final void Function(WebSocket) onDone;
 
-  WebSocket(this.ioWebSocket, {required this.onDone});
+  /// An uniqueId that is used to uniquely identify
+  /// the current instance.
+  final String id;
+
+  WebSocket(
+    this.ioWebSocket, {
+    required this.onDone,
+  }) : id = Slugid.v4().uuid();
 
   StreamSubscription? _streamSubscription;
 
