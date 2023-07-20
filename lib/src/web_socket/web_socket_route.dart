@@ -96,5 +96,62 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
     }
   }
 
+  /// Emits the [data] to client under particular [event]
+  /// and return the ids of those `WebSocket`s to whom
+  /// the it has been emitted.
+  ///
+  /// <br>
+  /// By default emit the data to all [clients] connected
+  /// to the server.
+  ///
+  /// <br>
+  /// If [webSocketIds] is not null then data will be emitted
+  /// only to those `WebSocket`s.
+  ///
+  /// <br>
+  /// If [self] is `true` then [data] will also be emitted to the
+  /// listeners present in the server listening to specified [event]
+  /// including `WebSocket`s scope as well as `WebSocketRoute` scope.
+  @override
+  List<String> emit(
+    String event,
+    EventData data, {
+    Iterable<String>? webSocketIds,
+    bool toSelf = false,
+  }) {
+    final emittedTo = <String>[];
+    // by default assume sending data to all
+    bool emitToAll = true;
+
+    void emitToWebSocket(WebSocket webSocket) {
+      webSocket.emit(event, data, toSelf: toSelf);
+      emittedTo.add(webSocket.id);
+    }
+
+    if (webSocketIds != null) {
+      // as webSocketIds is populated only
+      // send data to those
+      emitToAll = false;
+      for (final webSocketId in webSocketIds) {
+        final webSocket = _clientMap[webSocketId];
+        if (webSocket == null) {
+          continue;
+        }
+        emitToWebSocket(webSocket);
+      }
+    }
+
+    if (emitToAll) {
+      for (var webSocket in clients) {
+        emitToWebSocket(webSocket);
+      }
+    }
+
+    if (toSelf) {
+      super.emit(event, data);
+    }
+    return emittedTo;
+  }
+
   Iterable<WebSocket> get clients => _clientMap.values;
 }

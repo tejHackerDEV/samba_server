@@ -60,8 +60,13 @@ class WebSocket extends EventEmitter {
     );
   }
 
+  /// Emits the [data] to client under particular [event].
+  ///
+  /// <br>
+  /// If [self] is `true` then [data] will also be emitted to the
+  /// listeners present in the server listening to specified [event]
   @override
-  void emit(String event, EventData data) {
+  void emit(String event, EventData data, {bool toSelf = false}) {
     _assertSocketActive();
     if (!isActive) {
       return;
@@ -74,6 +79,10 @@ class WebSocket extends EventEmitter {
         },
       ),
     );
+    if (!toSelf) {
+      return;
+    }
+    super.emit(event, data);
   }
 
   /// Closes the connection of websocket,
