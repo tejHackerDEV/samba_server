@@ -7,7 +7,6 @@ import 'response.dart';
 import 'router/index.dart';
 import 'utils/headers.dart';
 import 'utils/typedefs.dart';
-import 'web_socket/index.dart';
 
 class HttpServer with RouterMixin {
   /// Holds all the [ResponseEncoder]'s that will be used
@@ -87,18 +86,19 @@ class HttpServer with RouterMixin {
   /// passed back to the client. So this should  be the last function
   /// that should be invoked for a particular request.
   Future<void> _sendBackResponse({
-    required io.HttpResponse ioHttpResponse,
+    required io.HttpRequest ioHttpRequest,
     required Response response,
   }) async {
-    if (response is WebSocketResponse) {
+    if (io.WebSocketTransformer.isUpgradeRequest(ioHttpRequest)) {
       /**
-       * If the response is of type WebSocketResponse,
-       * then don't do anything, as things will be already
-       * processed by the underlying `io.WebSocket`,
-       * so processing again will result in an error
+       * If the request can be upgraded to WebSocket,
+       * then don't do anything, as response will be already
+       * sent by the underlying `io.WebSocketTransformer`,
+       * so sending again will result in an error.
        */
       return;
     }
+    final ioHttpResponse = ioHttpRequest.response;
     ioHttpResponse.statusCode = response.statusCode;
     response.headers.forEach((key, value) {
       ioHttpResponse.headers.set(key, value);
@@ -209,14 +209,14 @@ class HttpServer with RouterMixin {
           }
         }
         return _sendBackResponse(
-          ioHttpResponse: ioHttpRequest.response,
+          ioHttpRequest: ioHttpRequest,
           response: response!,
         );
       } catch (error) {
         // if we reached here it means something bad has happened
         // & user error handling also failed, so send default error.
         return _sendBackResponse(
-          ioHttpResponse: ioHttpRequest.response,
+          ioHttpRequest: ioHttpRequest,
           response: defaultErrorResponse,
         );
       }
