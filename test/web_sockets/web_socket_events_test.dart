@@ -23,7 +23,7 @@ void main() {
     await httpServer.shutdown();
   });
 
-  group('Listen & Emit Events tests', () {
+  group('Listen events tests', () {
     test('Should able to listen to the events at server side', () async {
       final eventName = 'message';
       final eventData = {
@@ -118,7 +118,9 @@ void main() {
       expect(await completer.future, eventData);
       await subscription.cancel();
     });
+  });
 
+  group('Emit events tests', () {
     test(
         'Should able to emit to all connected clients by emitting via route (toSelf -> false)',
         () async {
