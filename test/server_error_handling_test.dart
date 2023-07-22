@@ -11,25 +11,23 @@ void main() {
   final httpClient = http_client.HttpClient(address: address, port: port);
 
   final httpServer = HttpServer();
+  final userHandledResponse = Response.internalServerError(
+    body: 'I am handled by user',
+  );
 
-  setUp(() async => await httpServer.bind(address: address, port: port));
-
-  tearDown(() async => await httpServer.shutdown());
-
-  group('Server error handling tests by user', () {
-    final userHandledResponse = Response.internalServerError(
-      body: 'I am handled by user',
-    );
-    final interceptorHandledResponse = Response.internalServerError(
-      body: 'I am from interceptor',
-    );
+  setUp(() async {
     httpServer.addErrorHandler((request, __, ___, ____) {
       if (request?.queryParameters.isNotEmpty == true) {
         throw AssertionError();
       }
       return userHandledResponse;
     });
+    await httpServer.bind(address: address, port: port);
+  });
 
+  tearDown(() async => await httpServer.shutdown());
+
+  group('Server error handling tests by user', () {
     test('Should able to handle error by user (synchronous)', () async {
       httpServer.registerRoute(
         RouteBuilder(
