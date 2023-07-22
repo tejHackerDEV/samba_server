@@ -10,17 +10,19 @@ import 'event_emitter.dart';
 import 'web_socket.dart';
 import 'web_socket_response.dart';
 
-abstract class WebSocketRoute extends EventEmitter implements Route {
-  @override
-  final HttpMethod httpMethod = HttpMethod.get;
+abstract class WebSocketRoute extends Route {
+  WebSocketRoute({
+    String path = '/ws',
+    HttpMethod httpMethod = HttpMethod.get,
+  }) : super(httpMethod, path);
 
-  @override
-  final String path;
-
-  /// Stores all the clients that has connected to this route
+  /// Stores all the clients who were actively connected
+  /// to this route at the moment
   final _clientMap = <String, WebSocket>{};
 
-  WebSocketRoute(this.path);
+  /// Stores set of the `WebSocket` ids joined under
+  /// a particular room at the moment.
+  final _rooms = <String, Set<String>>{};
 
   @override
   Iterable<Interceptor>? interceptors(Request request) => null;
@@ -28,6 +30,14 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
   /// An handler that will get triggered, when ever new client
   /// is connected to the route
   FutureOr<void> onConnected(WebSocket webSocket);
+
+  /// An handler that will get triggered, when ever a new client
+  /// joined a room
+  FutureOr<void> onJoined(String room, WebSocket webSocket) {}
+
+  /// An handler that will get triggered, when ever a client
+  /// left a room
+  FutureOr<void> onLeft(String room, WebSocket webSocket) {}
 
   /// An handler that will be triggered, when ever any error
   /// occurred for a particular client
@@ -37,10 +47,25 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
     StackTrace stackTrace,
   ) {}
 
-  /// An handler that will get triggered, when ever new client
+  /// An handler that will get triggered, when ever client
   /// got disconnected from the route
   FutureOr<WebSocketResponse> onDone(WebSocketResponse response) {
     return response;
+  }
+
+  /// Gets the ids of the roomMates that were present
+  /// in a particular room at the moment.
+  Set<String> _getRoomMates(String room) {
+    return _rooms.putIfAbsent(room, () => {});
+  }
+
+  /// Removes [webSocketId] from the specified [room]
+  bool removeClientFromRoom(String room, String webSocketId) {
+    final didLeft = _getRoomMates(room).remove(webSocketId);
+    if (didLeft) {
+      onLeft(room, _clientMap[webSocketId]!);
+    }
+    return didLeft;
   }
 
   @override
@@ -49,7 +74,15 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
       request.ioHttpRequest,
     );
     final completer = Completer<WebSocketResponse>();
-    final webSocket = WebSocket(ioWebSocket, onDone: (webSocket) {
+    final webSocket = WebSocket(ioWebSocket, onJoin: (room, webSocket) {
+      final didJoined = _getRoomMates(room).add(webSocket.id);
+      if (didJoined) {
+        onJoined(room, webSocket);
+      }
+      return didJoined;
+    }, onLeave: (room, webSocket) {
+      return removeClientFromRoom(room, webSocket.id);
+    }, onDone: (webSocket) {
       _onDone(
         webSocket,
         completer: completer,
@@ -82,7 +115,10 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
     required io.HttpResponse ioHttpResponse,
   }) async {
     try {
-      // remove the client
+      // remove traces of client from everywhere
+      for (final room in _rooms.keys) {
+        removeClientFromRoom(room, webSocket.id);
+      }
       _clientMap.remove(webSocket.id);
       final response = await onDone(
         WebSocketResponse(
@@ -106,17 +142,21 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
   ///
   /// <br>
   /// If [webSocketIds] is not null then data will be emitted
-  /// only to those `WebSocket`s.
+  /// to those `WebSocket`s instead of to all connected clients.
+  ///
+  /// <br>
+  /// If [rooms] is not null then data will be emitted
+  /// to those `WebSocket`s under those [rooms]
+  /// instead of to all connected clients.
   ///
   /// <br>
   /// If [self] is `true` then [data] will also be emitted to the
   /// listeners present in the server listening to specified [event]
-  /// including `WebSocket`s scope as well as `WebSocketRoute` scope.
-  @override
   List<String> emit(
     String event,
     EventData data, {
     Iterable<String>? webSocketIds,
+    Iterable<String>? rooms,
     bool toSelf = false,
   }) {
     final emittedTo = <String>[];
@@ -128,11 +168,8 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
       emittedTo.add(webSocket.id);
     }
 
-    if (webSocketIds != null) {
-      // as webSocketIds is populated only
-      // send data to those
-      emitToAll = false;
-      for (final webSocketId in webSocketIds) {
+    void emitToWebSocketIds(Iterable<String> ids) {
+      for (final webSocketId in ids) {
         final webSocket = _clientMap[webSocketId];
         if (webSocket == null) {
           continue;
@@ -141,17 +178,31 @@ abstract class WebSocketRoute extends EventEmitter implements Route {
       }
     }
 
+    if (webSocketIds != null) {
+      // as webSocketIds is populated only
+      // send data to those
+      emitToAll = false;
+      emitToWebSocketIds(webSocketIds);
+    }
+
+    if (rooms != null) {
+      // as rooms is populated only
+      // send data to those
+      emitToAll = false;
+      for (final room in rooms) {
+        emitToWebSocketIds(_getRoomMates(room));
+      }
+    }
+
     if (emitToAll) {
       for (var webSocket in clients) {
         emitToWebSocket(webSocket);
       }
     }
-
-    if (toSelf) {
-      super.emit(event, data);
-    }
     return emittedTo;
   }
 
   Iterable<WebSocket> get clients => _clientMap.values;
+
+  Iterable<String> getRoomMates(String room) => _getRoomMates(room);
 }

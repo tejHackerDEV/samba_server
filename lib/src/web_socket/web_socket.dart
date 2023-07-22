@@ -13,6 +13,14 @@ class WebSocket extends EventEmitter {
   final io.WebSocket ioWebSocket;
 
   /// Will gets triggered, when ever `this` instance
+  /// tries to join in a particular room.
+  final bool Function(String, WebSocket) onJoin;
+
+  /// Will gets triggered, when ever `this` instance
+  /// tries to leave from a particular room.
+  final bool Function(String, WebSocket) onLeave;
+
+  /// Will gets triggered, when ever `this` instance
   /// gets disconnected.
   final void Function(WebSocket) onDone;
 
@@ -22,6 +30,8 @@ class WebSocket extends EventEmitter {
 
   WebSocket(
     this.ioWebSocket, {
+    required this.onJoin,
+    required this.onLeave,
     required this.onDone,
   }) : id = Slugid.v4().uuid();
 
@@ -94,5 +104,15 @@ class WebSocket extends EventEmitter {
       return;
     }
     ioWebSocket.close(code, reason);
+  }
+
+  /// Joins into the specified [room]
+  bool join(String room) {
+    return onJoin(room, this);
+  }
+
+  /// Removes from the specified [room]
+  bool leave(String room) {
+    return onLeave(room, this);
   }
 }

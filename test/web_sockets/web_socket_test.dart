@@ -21,7 +21,6 @@ void main() {
     test('Should able to connect to the websocket', () async {
       final completer = Completer<bool>();
       final webSocketRouteBuilder = WebSocketRouteBuilder(
-        '/ws',
         connectedHandler: (webSocket) {
           completer.complete(true);
         },
@@ -41,7 +40,6 @@ void main() {
     test('Should able to disconnect the websocket', () async {
       final completer = Completer<bool>();
       final webSocketRouteBuilder = WebSocketRouteBuilder(
-        '/ws',
         connectedHandler: (_) {},
         errorHandler: (_, error, stackTrace) {
           completer.completeError(error, stackTrace);

@@ -16,8 +16,9 @@ class WebSocketRouteBuilder extends WebSocketRoute {
   final FutureOr<WebSocketResponse> Function(WebSocketResponse response)?
       doneHandler;
 
-  WebSocketRouteBuilder(
-    super.path, {
+  WebSocketRouteBuilder({
+    super.httpMethod,
+    super.path,
     this.interceptorsBuilder,
     required this.connectedHandler,
     this.errorHandler,
