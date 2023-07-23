@@ -124,14 +124,14 @@ class Router {
   /// If no `route` is registered then returns `null`.
   Result? _lookup(
     Iterable<String> pathSections,
-    PredictableNode? currentNode, {
+    PredictableNode currentNode, {
     required Map<String, String> pathParameters,
   }) {
     if (pathSections.isNotEmpty) {
       // only check for pathSections if its not empty
       final pathSection = pathSections.first;
       // 1. Check under static nodes.
-      PredictableNode? tempNode = currentNode?.staticNodes?.firstWhereOrNull(
+      PredictableNode? tempNode = currentNode.staticNodes?.firstWhereOrNull(
         (childNode) => childNode.pathSection == pathSection,
       );
 
@@ -183,9 +183,9 @@ class Router {
         }
 
         // 2.1 Check under regExpNodes first
-        if (currentNode?.regExpParametricNodes != null) {
+        if (currentNode.regExpParametricNodes != null) {
           final result = lookupUnderParametricNodes(
-            currentNode!.regExpParametricNodes!,
+            currentNode.regExpParametricNodes!,
             pathParameters: {...pathParameters},
           );
           // if the result is not null then return it directly,
@@ -197,9 +197,9 @@ class Router {
 
         // 2.2 As we are here it mean no route found under regExpNodes
         // so check under nonRegExpNodes
-        if (currentNode?.nonRegExpParametricNodes != null) {
+        if (currentNode.nonRegExpParametricNodes != null) {
           final result = lookupUnderParametricNodes(
-            currentNode!.nonRegExpParametricNodes!,
+            currentNode.nonRegExpParametricNodes!,
             pathParameters: {...pathParameters},
           );
           // if the result is not null then return it directly,
@@ -214,10 +214,10 @@ class Router {
       // what we are looking for under parametric nodes.
       // So check under wildcard node now.
       {
-        if (currentNode?.wildcardNode?.route != null) {
+        if (currentNode.wildcardNode?.route != null) {
           pathParameters[kWildcardKey] = pathSections.join('/');
           return Result(
-            currentNode!.wildcardNode!.route!,
+            currentNode.wildcardNode!.route!,
             pathParameters,
           );
         }
@@ -229,10 +229,10 @@ class Router {
     }
 
     // If currentNode route is null then return null directly
-    if (currentNode?.route == null) {
+    if (currentNode.route == null) {
       return null;
     }
-    return Result(currentNode!.route!, pathParameters);
+    return Result(currentNode.route!, pathParameters);
   }
 
   /// Return all the child routes of a [node]
