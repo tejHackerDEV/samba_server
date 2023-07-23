@@ -98,13 +98,23 @@ class Router {
   /// If no `route` is registered with [path] returns `null`.
   LookupResult lookup(HttpMethod httpMethod, String path) {
     final sanitizedPath = SanitizedPath(path);
+    Result? result = _lookup(
+      sanitizedPath.pathSections,
+      _nodeMap[httpMethod] as StaticNode,
+      pathParameters: {},
+    );
+    // result is null, so try looking under
+    // the all method if possible.
+    if (result == null && httpMethod != HttpMethod.all) {
+      result = _lookup(
+        sanitizedPath.pathSections,
+        _nodeMap[HttpMethod.all] as StaticNode,
+        pathParameters: {},
+      );
+    }
     return LookupResult(
       sanitizedPath.queryString?.toQueryParameters() ?? {},
-      _lookup(
-        sanitizedPath.pathSections,
-        _nodeMap[httpMethod] as StaticNode,
-        pathParameters: {},
-      ),
+      result,
     );
   }
 

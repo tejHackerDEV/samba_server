@@ -267,4 +267,45 @@ void main() {
       expect(router.routes.length, 0);
     });
   });
+
+  group('Route all method tests', () {
+    final router = Router();
+    final routesToRegister = [
+      RouteBuilder(HttpMethod.get, '/users', routeHandler: (_) {
+        return Response.ok(body: 'Get users data');
+      }),
+    ];
+
+    setUp(() {
+      for (final route in routesToRegister) {
+        router.register(route);
+      }
+    });
+
+    tearDown(() => router.reset());
+
+    test('Should able lookup for any random route', () {
+      final anyRouteMatcher = RouteBuilder(
+        HttpMethod.all,
+        '*',
+        routeHandler: (_) {
+          return Response.ok(body: 'I am from all');
+        },
+      );
+      router.register(anyRouteMatcher);
+      LookupResult lookupResult = router.lookup(
+        HttpMethod.get,
+        '/random',
+      );
+      expect(lookupResult.pathParameters, {'*': 'random'});
+      expect(lookupResult.route, anyRouteMatcher);
+
+      lookupResult = router.lookup(
+        HttpMethod.get,
+        '/users',
+      );
+      expect(lookupResult.pathParameters, isEmpty);
+      expect(lookupResult.route, routesToRegister[0]);
+    });
+  });
 }
