@@ -14,11 +14,19 @@ class Response {
   /// This will be set as a body for the response.
   Object? body;
 
+  void _initialize({
+    Map<String, String>? headers,
+  }) {
+    if (headers != null) {
+      this.headers.addAll(headers);
+    }
+  }
+
   /// Creates an instance from the [ioHttpResponse]
   Response.fromIO(io.HttpResponse ioHttpResponse)
       : statusCode = ioHttpResponse.statusCode,
         body = null {
-    headers.addAll(ioHttpResponse.headers.toMap());
+    _initialize(headers: ioHttpResponse.headers.toMap());
   }
 
   /// Return response with `io.HttpStatus.ok` as [statusCode]
@@ -26,9 +34,7 @@ class Response {
     Map<String, String>? headers,
     this.body,
   }) : statusCode = io.HttpStatus.ok {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with `io.HttpStatus.created` as [statusCode]
@@ -36,9 +42,7 @@ class Response {
     Map<String, String>? headers,
     this.body,
   }) : statusCode = io.HttpStatus.created {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with `io.HttpStatus.notFound` as [statusCode]
@@ -46,9 +50,7 @@ class Response {
     Map<String, String>? headers,
     this.body,
   }) : statusCode = io.HttpStatus.notFound {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with `io.HttpStatus.methodNotAllowed` as [statusCode]
@@ -56,9 +58,7 @@ class Response {
     Map<String, String>? headers,
     this.body,
   }) : statusCode = io.HttpStatus.methodNotAllowed {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with `io.HttpStatus.noContent` as [statusCode]
@@ -68,9 +68,7 @@ class Response {
     Map<String, String>? headers,
   })  : statusCode = io.HttpStatus.noContent,
         body = null {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with `io.HttpStatus.internalServerError` as [statusCode]
@@ -78,9 +76,7 @@ class Response {
     Map<String, String>? headers,
     this.body,
   }) : statusCode = io.HttpStatus.internalServerError {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with `io.HttpStatus.unauthorized` as [statusCode]
@@ -88,9 +84,7 @@ class Response {
     Map<String, String>? headers,
     this.body,
   }) : statusCode = io.HttpStatus.unauthorized {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with `io.HttpStatus.forbidden` as [statusCode]
@@ -98,9 +92,7 @@ class Response {
     Map<String, String>? headers,
     this.body,
   }) : statusCode = io.HttpStatus.forbidden {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 
   /// Return response with provided values
@@ -109,8 +101,6 @@ class Response {
     required this.body,
     Map<String, String>? headers,
   }) {
-    if (headers != null) {
-      this.headers.addAll(headers);
-    }
+    _initialize(headers: headers);
   }
 }
