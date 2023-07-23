@@ -24,7 +24,8 @@ abstract class RequestDecoder<T extends Object> extends Interceptor {
 
   /// Returns `true` or `false` to determine whether this decoder can decode
   /// the target value or not
-  bool canDecode(io.ContentType contentType) => contentType.value.startsWith(
+  FutureOr<bool> canDecode(io.ContentType contentType) =>
+      contentType.value.startsWith(
         this.contentType,
       );
 
@@ -44,7 +45,7 @@ abstract class RequestDecoder<T extends Object> extends Interceptor {
     final requestBody = request.body;
     if (requestBody is! Stream<Uint8List>) return null;
     if (contentType == null) return null;
-    if (!canDecode(contentType)) return null;
+    if (!await canDecode(contentType)) return null;
     request.body = await decode(
       contentType,
       Encoding.getByName(contentType.charset) ?? fallbackEncoding,
