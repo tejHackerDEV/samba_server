@@ -5,4 +5,5 @@ enum HttpMethod {
   patch,
   delete,
   options,
+  all,
 }
