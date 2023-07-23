@@ -160,7 +160,7 @@ class HttpServer with RouterMixin {
             if (lookupResult.pathParameters != null) {
               request.pathParameters.addAll(lookupResult.pathParameters!);
             }
-            final interceptors = route.interceptors(request);
+            final interceptors = await route.interceptors(request);
             // run any global interceptors at first before invoking
             // route's interceptors
             for (final interceptor in [

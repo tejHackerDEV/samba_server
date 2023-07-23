@@ -13,7 +13,7 @@ abstract class Route {
 
   FutureOr<Response> handler(Request request);
 
-  Iterable<Interceptor>? interceptors(Request request) => null;
+  FutureOr<Iterable<Interceptor>>? interceptors(Request request) => null;
 
   @override
   String toString() => path;
