@@ -15,22 +15,22 @@ abstract class ResponseEncoder<T> extends Interceptor {
 
   /// Should have an custom implementation of
   /// converting the [value] of type [T] to [String].
-  String encode(T value);
+  FutureOr<String> encode(T value);
 
   /// Returns `true` or `false` to determine whether
   /// this encoder can encode the [value] or not
-  bool canEncode(dynamic value) => value is T;
+  FutureOr<bool> canEncode(dynamic value) => value is T;
 
   @override
-  FutureOr<Response> onDispose(Request request, Response response) {
+  FutureOr<Response> onDispose(Request request, Response response) async {
     // only encode if the `content-type` is not set already
     // this is a check used to restrict response body
     // to be encoded by multiple encoders if defined
     if (response.headers[Headers.kContentType] == null) {
-      if (canEncode(response.body)) {
+      if (await canEncode(response.body)) {
         response
           ..headers[Headers.kContentType] = contentType
-          ..body = encode(response.body as T);
+          ..body = await encode(response.body as T);
       }
     }
     return response;

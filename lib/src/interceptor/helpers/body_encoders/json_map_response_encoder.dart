@@ -8,6 +8,6 @@ class JsonMapResponseEncoder extends ResponseEncoder<Map<String, dynamic>> {
 
   @override
   String encode(Map<String, dynamic> value) {
-    return jsonEncode(value);
+    return json.encode(value);
   }
 }
