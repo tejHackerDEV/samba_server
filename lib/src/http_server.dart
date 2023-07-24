@@ -43,9 +43,9 @@ class HttpServer with RouterMixin {
   /// while handling any requests.
   ErrorHandler? _globalErrorHandler;
 
-  /// Will holds all the global [Interceptor]'s that will be invoked
-  /// for each & every request no matter what.
-  Iterable<Interceptor>? _globalInterceptors;
+  /// An builder function which will returns `interceptor`s that
+  /// were registered globally.
+  InterceptorBuilder? _globalInterceptorBuilder;
 
   /// Indicates whether the server is running or not
   bool get isRunning => _ioHttpServer != null;
@@ -160,11 +160,14 @@ class HttpServer with RouterMixin {
             if (lookupResult.pathParameters != null) {
               request.pathParameters.addAll(lookupResult.pathParameters!);
             }
+            final globalInterceptors = await _globalInterceptorBuilder?.call(
+              request,
+            );
             final interceptors = await route.interceptors(request);
             // run any global interceptors at first before invoking
             // route's interceptors
             for (final interceptor in [
-              ...?_globalInterceptors,
+              ...?globalInterceptors,
               ...?interceptors,
             ]) {
               response = await interceptor.onInit(request);
@@ -259,13 +262,15 @@ class HttpServer with RouterMixin {
     _globalErrorHandler = errorHandler;
   }
 
-  void addInterceptors(Iterable<Interceptor> globalInterceptors) {
-    if (_globalInterceptors != null) {
+  /// Registers an [interceptors] as global interceptors to the server.
+  /// So any incoming request at first goes through them
+  void registerInterceptors(InterceptorBuilder builder) {
+    if (_globalInterceptorBuilder != null) {
       throw AssertionError(
         'GlobalInterceptors were already registered, so can\'t add one more',
       );
     }
-    _globalInterceptors = globalInterceptors;
+    _globalInterceptorBuilder = builder;
   }
 
   /// Permanently stops this [HttpServer] from listening for new
@@ -279,7 +284,7 @@ class HttpServer with RouterMixin {
     _assertServerRunning();
     await _ioHttpServer?.close(force: gracefully);
     resetRoutes();
-    _globalInterceptors = null;
+    _globalInterceptorBuilder = null;
     _globalErrorHandler = null;
     _ioHttpServer = null;
   }

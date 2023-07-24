@@ -27,7 +27,7 @@ void main() {
 
   test('Should able to call all `GET`,`POST`,`PUT`,`PATCH`,`DELETE` methods',
       () async {
-    httpServer.addInterceptors([CrossOriginInterceptor()]);
+    httpServer.registerInterceptors((_) => [CrossOriginInterceptor()]);
     http_client.HttpResponse response = await httpClient.get(
       httpServer.uri.path,
     );
@@ -52,14 +52,16 @@ void main() {
   });
 
   test('Should able to call only `GET`,`POST`,`PUT` methods', () async {
-    httpServer.addInterceptors([
-      CrossOriginInterceptor(
-        httpMethodsToAllow: [
-          HttpMethod.get,
-          HttpMethod.put,
-        ],
-      ),
-    ]);
+    httpServer.registerInterceptors(
+      (_) => [
+        CrossOriginInterceptor(
+          httpMethodsToAllow: [
+            HttpMethod.get,
+            HttpMethod.put,
+          ],
+        ),
+      ],
+    );
     http_client.HttpResponse response = await httpClient.get(
       httpServer.uri.path,
     );
@@ -84,7 +86,7 @@ void main() {
   });
 
   test('Should block pre-flights requests with `204` status code', () async {
-    httpServer.addInterceptors([CrossOriginInterceptor()]);
+    httpServer.registerInterceptors((_) => [CrossOriginInterceptor()]);
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,
     );
@@ -93,7 +95,7 @@ void main() {
   });
 
   test('Should send allow methods only for `OPTIONS` request', () async {
-    httpServer.addInterceptors([CrossOriginInterceptor()]);
+    httpServer.registerInterceptors((_) => [CrossOriginInterceptor()]);
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,
     );
@@ -116,9 +118,12 @@ void main() {
   });
 
   test('Should not block pre-flights requests', () async {
-    httpServer.addInterceptors(
-      [CrossOriginInterceptor(shouldBlockPreflight: false)],
+    httpServer.registerInterceptors(
+      (_) => [
+        CrossOriginInterceptor(shouldBlockPreflight: false),
+      ],
     );
+
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,
     );
@@ -127,7 +132,7 @@ void main() {
   });
 
   test('Should allow all origins', () async {
-    httpServer.addInterceptors([CrossOriginInterceptor()]);
+    httpServer.registerInterceptors((_) => [CrossOriginInterceptor()]);
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,
     );
@@ -155,8 +160,8 @@ void main() {
   test(
       'Should send origin specified in the request headers as a response header if we allow it (String)',
       () async {
-    httpServer.addInterceptors(
-      [
+    httpServer.registerInterceptors(
+      (_) => [
         CrossOriginInterceptor(
           originsToAllow: ['someRandom.org', 'someOtherRandom.org'],
         ),
@@ -193,8 +198,8 @@ void main() {
   test(
       'Should send origin specified in the request headers as a response header if we allow it (Regex)',
       () async {
-    httpServer.addInterceptors(
-      [
+    httpServer.registerInterceptors(
+      (_) => [
         CrossOriginInterceptor(
           // allow any origin ends with `.in`
           originsToAllow: [RegExp(r'(.in)$')],
@@ -232,8 +237,8 @@ void main() {
   test(
       'Should send origin specified in the request headers as a response header if we allow it (String) & (Regex)',
       () async {
-    httpServer.addInterceptors(
-      [
+    httpServer.registerInterceptors(
+      (_) => [
         CrossOriginInterceptor(
           originsToAllow: [
             'someRandom.org',
@@ -283,7 +288,7 @@ void main() {
   });
 
   test('Should not contain `allow-credentials` header in response', () async {
-    httpServer.addInterceptors([CrossOriginInterceptor()]);
+    httpServer.registerInterceptors((_) => [CrossOriginInterceptor()]);
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,
     );
@@ -292,8 +297,12 @@ void main() {
   });
 
   test('Should contain `allow-credentials` header in response', () async {
-    httpServer.addInterceptors(
-      [CrossOriginInterceptor(shouldAllowCredentials: true)],
+    httpServer.registerInterceptors(
+      (_) => [
+        CrossOriginInterceptor(
+          shouldAllowCredentials: true,
+        ),
+      ],
     );
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,
@@ -303,7 +312,7 @@ void main() {
   });
 
   test('Should not contain `max-age` header in response', () async {
-    httpServer.addInterceptors([CrossOriginInterceptor()]);
+    httpServer.registerInterceptors((_) => [CrossOriginInterceptor()]);
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,
     );
@@ -313,8 +322,12 @@ void main() {
 
   test('Should contain `max-age` header in response only for `OPTIONS` request',
       () async {
-    httpServer.addInterceptors(
-      [CrossOriginInterceptor(maxAge: Duration(minutes: 10))],
+    httpServer.registerInterceptors(
+      (_) => [
+        CrossOriginInterceptor(
+          maxAge: const Duration(minutes: 10),
+        ),
+      ],
     );
     http_client.HttpResponse response = await httpClient.options(
       httpServer.uri.path,

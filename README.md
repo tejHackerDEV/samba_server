@@ -803,9 +803,11 @@ class LoggerInterceptor extends Interceptor {
 
 Future<void> main() async {
   final httpServer = HttpServer();
-  httpServer.addInterceptors([
-    LoggerInterceptor(),
-  ]);
+  httpServer.registerInterceptors((request) {
+    return [
+      LoggerInterceptor(),
+    ];
+  });
   await httpServer.bind(address: '127.0.0.1', port: 8080);
 }
 ```
