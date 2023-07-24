@@ -247,10 +247,10 @@ class HttpServer with RouterMixin {
     _listerForIncomingRequests();
   }
 
-  /// Adds an global [errorHandler] to the server.
+  /// Registers an global [errorHandler] to the server.
   /// If any uncaught exceptions occurs while handling requests
   /// this will be invoked by the server.
-  void addErrorHandler(ErrorHandler errorHandler) {
+  void registerErrorHandler(ErrorHandler errorHandler) {
     if (_globalErrorHandler != null) {
       throw AssertionError(
         'A GlobalErrorHandler is already registered, so can\'t add one more',

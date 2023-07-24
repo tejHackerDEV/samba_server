@@ -16,7 +16,7 @@ void main() {
   );
 
   setUp(() async {
-    httpServer.addErrorHandler((request, __, ___, ____) {
+    httpServer.registerErrorHandler((request, __, ___, ____) {
       if (request?.queryParameters.isNotEmpty == true) {
         throw AssertionError();
       }

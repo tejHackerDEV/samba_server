@@ -820,7 +820,7 @@ import 'package:samba_server/samba_server.dart';
 
 Future<void> main() async {
   final httpServer = HttpServer();
-  httpServer.addErrorHandler((request, response, error, stackTrace) {
+  httpServer.registerErrorHandler((request, response, error, stackTrace) {
     return Response.internalServerError(body: 'Some error has occurred');
   });
   await httpServer.bind(address: '127.0.0.1', port: 8080);
