@@ -1,10 +1,17 @@
 name: samba_server
-description: A starting point for Dart libraries or applications.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: Blazing-ly fast & highly optimized backend development framework for developing Api's & Event-Driven WebSocket's which written completely in Dart..
+version: 0.0.1
+repository: https://github.com/tejHackerDEV/samba_server
+
+topics:
+  - server
+  - backend
+  - apis
+  - websockets
+  - interceptors
 
 environment:
-  sdk: ^3.0.4
+  sdk: ^3.0.0
 
 # Add regular dependencies here.
 dependencies:

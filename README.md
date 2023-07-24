@@ -1,6 +1,6 @@
 # Samba Server
 
-Blazing-ly fast & highly optimized backend development framework for Api's & Event-Driven
+Blazing-ly fast & highly optimized backend development framework for developing Api's & Event-Driven
 WebSocket's which written completely in Dart.
 
 ## Quickstart
@@ -46,7 +46,7 @@ Future<void> main() async {
 
 - This is a [Dart](https://dart.dev/) package available through the [pub.dev](https://pub.dev)
   package repository.
-- Before installing, download and setup [Dart SDK](https://dart.dev/get-dart). Dart SDK 3.0.4 or
+- Before installing, download and setup [Dart SDK](https://dart.dev/get-dart). Dart SDK 3.0.0 or
   higher is required.
 - Installation is done using the [`dart pub add` command](https://dart.dev/tools/pub/cmd/pub-add)
 
